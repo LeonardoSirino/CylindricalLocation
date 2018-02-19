@@ -2,6 +2,7 @@ import geographiclib.geodesic as geo
 import matplotlib.pyplot as plt
 import scipy.optimize as opt
 import math as m
+import numpy as np
 
 
 class CylindricalLocation():
@@ -20,13 +21,13 @@ class CylindricalLocation():
         """
         Função para calcular as coordenadas auxliares (latitude e longitude) quando a coordenada estiver no tampo
         """
-        if Coords.get("Ycord") > self.height or Coords.get("Ycord") < 0:
+        if Coords.get("Ycord") >= self.height or Coords.get("Ycord") <= 0:
             if Coords.get("Xcord") > self.diameter * m.pi:
                 AuxXcord = Coords.get("Xcord") - self.diameter * m.pi
             else:
                 AuxXcord = Coords.get("Xcord")
             lon = AuxXcord / (self.diameter * m.pi) * 360 - 180
-            if Coords.get("Ycord") > self.height:
+            if Coords.get("Ycord") >= self.height:
                 Coords.update({"cap": "sup"})
                 s12 = Coords.get("Ycord") - self.height
             else:
@@ -53,16 +54,42 @@ class CylindricalLocation():
                 dist = self.__DistCaptoCap(P1, P2)
         # Distância entre um ponto no casco e outro no tampo
         elif P1.get("OnCap") ^ P2.get("OnCap"):
-            dist = self.__DistWalltoCap(P1, P2)  # Definir os pontos corretos!
+            dist = self.__DistWalltoCap(P1, P2)
         else:  # Distãncia entre pontos no casco
             dist = m.sqrt((P1.get("Xcord") - P2.get("Xcord")) **
                           2 + (P1.get("Ycord") - P2.get("Ycord"))**2)
 
         return dist
 
-    def __DistWalltoCap(self, Pwall, Pcap):  # PlaceHolder
-        print("Um ponto no casco e outro no tampo")
-        dist = 0
+    def __DistWalltoCap(self, P1, P2):
+        if P1.get("OnCap"):
+            Pcap = P1
+            Pwall = P2
+        else:
+            Pcap = P2
+            Pwall = P1
+
+        if Pcap.get("cap") == "sup":
+            Yaux = self.height
+        else:
+            Yaux = 0
+
+        min = np.min([Pcap.get("Xcord"), Pwall.get("Xcord")])
+        max = np.max([Pcap.get("Xcord"), Pwall.get("Xcord")])
+        AuxPoint = {"Ycord": Yaux}
+        distances = []
+
+        for Xaux in np.linspace(start=min, stop=max, num=100):
+            AuxPoint.update({"Xcord": Xaux})
+            self.__AuxCoords(AuxPoint)
+            AuxPoint.update({"OnCap": False})
+            dist1 = self.__calcDist(Pwall, AuxPoint)
+            AuxPoint.update({"OnCap": True})
+            dist2 = self.__calcDist(AuxPoint, Pcap)
+            distances.append(dist1 + dist2)
+
+        dist = np.min(distances)
+
         return dist
 
     def __DistCaptoCap(self, Psup, Pinf):  # PlaceHolder
