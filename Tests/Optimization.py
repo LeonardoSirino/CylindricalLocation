@@ -12,10 +12,12 @@ print("Semi-Perimetro: " + str(semiPerim))
 # Point 1
 P1 = {"Xcord": 10, "Ycord": 50}
 # Point 2
-P2 = {"Xcord": 250, "Ycord": -40}
+P2 = {"Xcord": 150, "Ycord": -40}
 
-tampo = geo.Geodesic(diameter, f)
-
+tampo = geo.Geodesic(diameter / 2, f)
+temp = tampo.Inverse(lat1=0, lat2=90, lon1=0, lon2=0)
+semiPerim = temp.get("s12")
+print("Semi perímetro real: " + str(semiPerim))
 # Determining latitude and longitude for Point 2
 P2lon = P2.get("Xcord") / (diameter * m.pi) * 360 - 180
 print("P2lon: " + str(P2lon))
@@ -38,10 +40,23 @@ def Fopt(auxdiam):
     return CalCDist(auxdiam, P1, P2lat, P2lon, semiPerim, diameter)
 
 
+"""
 res = opt.minimize_scalar(Fopt, bounds=(
     P1.get("Xcord"), P2.get("Xcord")), method="bounded")
-print("Solução, posição em x: " + str(res.x))
-lonMin = res.x / (diameter * m.pi) * 360 - 180
+"""
+
+AuxPoints = np.linspace(P1.get("Xcord"), P2.get("Xcord"), 200)
+Distances = []
+for AuxPoint in AuxPoints:
+    dist = CalCDist(AuxPoint, P1, P2lat, P2lon, semiPerim, diameter)
+    Distances.append(dist)
+
+plt.plot(AuxPoints, Distances)
+plt.show()
+Xmin = AuxPoints[Distances.index(np.min(Distances))]
+
+print("Solução, posição em x: " + str(Xmin))
+lonMin = Xmin / (diameter * m.pi) * 360 - 180
 print("Solução, longitude: " + str(lonMin))
 
 Geoline = tampo.InverseLine(lat1=0, lat2=P2lat, lon1=lonMin, lon2=P2lon)
@@ -49,7 +64,7 @@ smax = tampo.Inverse(lat1=0, lat2=P2lat, lon1=lonMin, lon2=P2lon).get("s12")
 print("smax: " + str(smax))
 
 ycords = [P1.get("Ycord"), 0]
-xcords = [P1.get("Xcord"), res.x]
+xcords = [P1.get("Xcord"), Xmin]
 for s in np.linspace(start=0, stop=smax):
     pos = Geoline.Position(s)
     posDiam = (pos.get("lon2") + 180) * diameter * m.pi / 360
@@ -65,19 +80,10 @@ VesselY = [-semiPerim, -semiPerim, 0, 0, -semiPerim, height, height, 0]
 
 plt.plot(xcords, ycords, "g-")
 plt.plot(VesselX, VesselY)
-plt.plot([P1.get("Xcord"), P2.get("Xcord")], [P1.get("Ycord"), P2.get("Ycord")], "r")
+plt.plot([P1.get("Xcord"), P2.get("Xcord")], [
+         P1.get("Ycord"), P2.get("Ycord")], "r")
 plt.ylabel("Altura do vaso")
 plt.xlabel("Distância a partir da geratriz")
 plt.title("Caminho direto x caminho real")
 plt.show()
 plt.clf()
-
-
-AuxPoints = np.linspace(P1.get("Xcord"), P2.get("Xcord"), 100)
-Distances = []
-for AuxPoint in AuxPoints:
-    dist = CalCDist(AuxPoint, P1, P2lat, P2lon, semiPerim, diameter)
-    Distances.append(dist)
-
-plt.plot(AuxPoints, Distances)
-plt.show()
