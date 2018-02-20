@@ -65,10 +65,14 @@ print("smax: " + str(smax))
 
 ycords = [P1.get("Ycord"), 0]
 xcords = [P1.get("Xcord"), Xmin]
+theta = []
+R = []
 for s in np.linspace(start=0, stop=smax):
     pos = Geoline.Position(s)
     posDiam = (pos.get("lon2") + 180) * diameter * m.pi / 360
     lataux = pos.get("lat2")
+    R.append(m.cos(m.radians(lataux)) * diameter / 2)
+    theta.append(m.radians(pos.get("lon2")))
     Saux = tampo.Inverse(lat1=0, lon1=0, lat2=lataux, lon2=0).get("s12")
     ycords.append(-Saux)
     xcords.append(posDiam)
@@ -77,13 +81,17 @@ maxX = diameter * m.pi
 VesselX = [0, maxX, maxX, 0, 0, 0, maxX, maxX]
 VesselY = [-semiPerim, -semiPerim, 0, 0, -semiPerim, height, height, 0]
 
-
-plt.plot(xcords, ycords, "g-")
-plt.plot(VesselX, VesselY)
-plt.plot([P1.get("Xcord"), P2.get("Xcord")], [
-         P1.get("Ycord"), P2.get("Ycord")], "r")
-plt.ylabel("Altura do vaso")
-plt.xlabel("Distância a partir da geratriz")
-plt.title("Caminho direto x caminho real")
+Plan = plt.subplot(211)
+Plan.plot(xcords, ycords, "g-")
+Plan.plot(VesselX, VesselY)
+Plan.plot([P1.get("Xcord"), P2.get("Xcord")], [
+    P1.get("Ycord"), P2.get("Ycord")], "r")
+"""
+Plan.ylabel("Altura do vaso")
+Plan.xlabel("Distância a partir da geratriz")
+Plan.title("Caminho direto x caminho real")
+"""
+Polar = plt.subplot(212, projection="polar")
+Polar.plot(theta, R)
+Polar.set_rmax(diameter / 2)
 plt.show()
-plt.clf()
