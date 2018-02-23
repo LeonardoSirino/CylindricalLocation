@@ -1,0 +1,5 @@
+Remover clones verticais
+Minimização com dois pontos de interface tampo/casco
+Clones horizontais para os dois lados, dependendo da posição original do ponto
+Clones horizontais apenas dos pontos no casco, no tampo a biblitoeca de geodésica já determina a menor distância
+Opção para plotar curva de geodésica entre os pontos quando se calcula a distância
