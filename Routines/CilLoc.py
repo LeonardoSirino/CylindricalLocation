@@ -13,8 +13,7 @@ class CylindricalLocation():
         self.f = SemiPerimeter * 4 * 2 / \
             (m.pi * diameter) - 1  # Achatamento do tampo
         self.SensorList = []
-        self.SensorListHClone = []
-        self.SensorListVClone = []
+        self.__SensorListHClone = []
         self.cap = geo.Geodesic(self.diameter / 2, self.f)
 
     def __AuxCoords(self, Coords):
@@ -110,27 +109,18 @@ class CylindricalLocation():
             SensorCoords = {'Xcord': Xcord, 'Ycord': Ycord}
             self.__AuxCoords(SensorCoords)
             self.SensorList.append(SensorCoords)
-            SensorHCloneCoords = {'Xcord': Xcord +
-                                  self.diameter * m.pi, 'Ycord': Ycord}
+            if SensorCoords.get("Xcord") >= self.diameter * m.pi / 2:
+                XHClone = SensorCoords.get("Xcord") - self.diameter * m.pi
+            else:
+                XHClone = SensorCoords.get("Xcord") + self.diameter * m.pi
+            SensorHCloneCoords = {'Xcord': XHClone, 'Ycord': Ycord}
             self.__AuxCoords(SensorHCloneCoords)
-            self.SensorListHClone.append(SensorHCloneCoords)
+            self.__SensorListHClone.append(SensorHCloneCoords)
             # Determining XVClone coordinate
             if Xcord > self.diameter / 2:
                 Xcord = Xcord - self.diameter * m.pi / 2
             else:
                 Xcord = Xcord + self.diameter * m.pi / 2
-            # Determining YVClone coordinate
-            if Ycord > self.height:  # No tampo superior
-                Ycord = Ycord + (self.height + self.SemiPerimeter - Ycord)
-            elif Ycord > self.height / 2 and Ycord < self.height:  # Na parte superior do corpo
-                Ycord = Ycord + 2 * self.SemiPerimeter + (self.height - Ycord)
-            elif Ycord < self.height / 2 and Ycord > 0:  # Na parte inferior do corpo
-                Ycord = Ycord - 2 * self.SemiPerimeter - (self.height - Ycord)
-            else:  # No tampo inferior
-                Ycord = Ycord - (self.SemiPerimeter - abs(Ycord))
-            # Setting VClone Coordinates
-            self.SensorListVClone.append({'Xcord': Xcord, 'Ycord': Ycord})
-
         else:
             print("As coordenadas deste ponto estão fora do vaso")
 
