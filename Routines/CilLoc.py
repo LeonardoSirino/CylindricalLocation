@@ -51,17 +51,26 @@ class CylindricalLocation():
         self.SensorList = []
         self.__SensorListHClone = []
         self.cap = geo.Geodesic(self.diameter / 2, self.f)
+        self.__Xpath = []
+        self.__Ypath = []
+        self.__GenPlot = False
+        self.__PointsonPlot = 100
+        self.__VesselXPath = self.__PlotRectangle(0, 0, self.diameter * m.pi, -self.SemiPerimeter).get("xpath") + self.__PlotRectangle(
+            0, 0, self.diameter * m.pi, self.height).get("xpath") + self.__PlotRectangle(0, self.height, self.diameter * m.pi, self.SemiPerimeter).get("xpath")
+        self.__VesselYPath = self.__PlotRectangle(0, 0, self.diameter * m.pi, -self.SemiPerimeter).get("ypath") + self.__PlotRectangle(
+            0, 0, self.diameter * m.pi, self.height).get("ypath") + self.__PlotRectangle(0, self.height, self.diameter * m.pi, self.SemiPerimeter).get("ypath")
+
+    def __PlotRectangle(self, x0, y0, width, height):
+        xpath = [x0, x0 + width, x0 + width, x0, x0]
+        ypath = [y0, y0, y0 + height, y0 + height, y0]
+        return {"xpath": xpath, "ypath": ypath}
 
     def __AuxCoords(self, Coords):
         """
         Função para calcular as coordenadas auxliares (latitude e longitude) quando a coordenada estiver no tampo
         """
         if Coords.Ycord >= self.height or Coords.Ycord <= 0:
-            if Coords.Xcord > self.diameter * m.pi:
-                AuxXcord = Coords.Xcord - self.diameter * m.pi
-            else:
-                AuxXcord = Coords.Xcord
-            lon = AuxXcord / (self.diameter * m.pi) * 360 - 180
+            lon = Coords.Xcord / (self.diameter * m.pi) * 360 - 180
             if Coords.Ycord >= self.height:
                 Coords.SetCap("sup")
                 s12 = Coords.Ycord - self.height
@@ -77,6 +86,54 @@ class CylindricalLocation():
         else:
             Coords.SetOnCap(False)
 
+    def __PlotonCap(self, lat1, lat2, lon1, lon2, cap):
+        smax = self.cap.Inverse(lat1=lat1, lat2=lat2,
+                                lon1=lon1, lon2=lon2).get("s12")
+        Path = self.cap.InverseLine(lat1=lat1, lat2=lat2, lon1=lon1, lon2=lon2)
+        lenghts = np.linspace(0, smax, self.__PointsonPlot)
+        for s in lenghts:
+            position = Path.Position(s12=s)
+            pathDiam = (position.get("lon2") + 180) * \
+                self.diameter * m.pi / 360
+            lataux = position.get("lat2")
+            Saux = self.cap.Inverse(
+                lat1=0, lon1=0, lat2=lataux, lon2=0).get("s12")
+            if cap == "sup":
+                Saux = Saux + self.height
+            else:
+                Saux = -Saux
+            self.__Ypath.append(Saux)
+            self.__Xpath.append(pathDiam)
+
+    def __PlotonWall(self, x1, x2, y1, y2):
+        xpath = np.linspace(x1, x2, self.__PointsonPlot)
+        xpath = xpath.tolist()
+        ypath = np.linspace(y1, y2, self.__PointsonPlot)
+        ypath = ypath.tolist()
+        # Correção da coordenada X
+        aux = True
+        xcorrect = []
+        ycorrect = []
+        k = 0
+        for x in xpath:
+            if x > self.diameter * m.pi:
+                x = x - self.diameter * m.pi
+                if aux:
+                    xcorrect.append(m.nan)
+                    ycorrect.append(m.nan)
+                    aux = False
+            elif x < 0:
+                x = x + self.diameter * m.pi
+                if aux:
+                    xcorrect.append(m.nan)
+                    ycorrect.append(m.nan)
+                    aux = False
+            xcorrect.append(x)
+            ycorrect.append(ypath[k])
+            k += 1
+        self.__Xpath += xcorrect
+        self.__Ypath += ycorrect
+
     def __calcDist(self, P1, P2):
         """
         Função para calcular distância entre dois pontos em posições quaisquer do vaso
@@ -86,6 +143,10 @@ class CylindricalLocation():
                 res = self.cap.Inverse(
                     lat1=P1.Lat, lat2=P2.Lat, lon1=P1.Lon, lon2=P2.Lon)
                 dist = res.get("s12")
+                if self.__GenPlot:
+                    self.__PlotonCap(lat1=P1.Lat, lat2=P2.Lat,
+                                     lon1=P1.Lon, lon2=P2.Lon, cap=P1.Cap)
+
             else:  # Pontos em tampos opostos
                 # Definir os pontos corretos!
                 dist = self.__DistCaptoCap(P1, P2)
@@ -95,6 +156,9 @@ class CylindricalLocation():
         else:  # Distãncia entre pontos no casco
             dist = m.sqrt((P1.Xcord - P2.Xcord) **
                           2 + (P1.Ycord - P2.Ycord)**2)
+            if self.__GenPlot:
+                self.__PlotonWall(x1=P1.Xcord, x2=P2.Xcord,
+                                  y1=P1.Ycord, y2=P2.Ycord)
 
         return dist
 
@@ -114,18 +178,32 @@ class CylindricalLocation():
         min = np.min([Pcap.Xcord, Pwall.Xcord])
         max = np.max([Pcap.Xcord, Pwall.Xcord])
         AuxPoint = VesselPoint(0, Yaux)
+        AuxPoints = []
         distances = []
 
+        AuxGenPlot = self.__GenPlot
+        self.__GenPlot = False  # Desabilitando temporariamente os gráficos para melhor desempenho
         for Xaux in np.linspace(start=min, stop=max, num=100):
             AuxPoint.SetXcord(Xaux)
+            AuxPoints.append(AuxPoint)
             self.__AuxCoords(AuxPoint)
             AuxPoint.SetOnCap(False)
             dist1 = self.__calcDist(Pwall, AuxPoint)
             AuxPoint.SetOnCap(True)
             dist2 = self.__calcDist(AuxPoint, Pcap)
             distances.append(dist1 + dist2)
+        self.__GenPlot = AuxGenPlot
 
         dist = np.min(distances)
+        if self.__GenPlot:  # Plot do caminho que passa pelo casco e pelo tampo
+            BestPoint = AuxPoints[distances.index(dist)]
+            self.__AuxCoords(BestPoint)
+            BestPoint.SetOnCap(False)
+            # Plot do caminho no casco
+            dist1 = self.__calcDist(Pwall, BestPoint)
+            BestPoint.SetOnCap(True)
+            # Plot do caminho no tampo
+            dist2 = self.__calcDist(BestPoint, Pcap)
 
         return dist
 
@@ -155,7 +233,8 @@ class CylindricalLocation():
                 else:
                     # Sensor posicionado na porção esquerda do casco
                     XHClone = SensorCoords.Xcord + self.diameter * m.pi
-                    SensorHCloneCoords.SetXcord(XHClone)
+
+                SensorHCloneCoords.SetXcord(XHClone)
             else:  # Ponto em um dos tampos do vaso
                 SensorHCloneCoords.SetXcord(m.nan)
                 SensorHCloneCoords.SetValid(False)
@@ -165,9 +244,42 @@ class CylindricalLocation():
         else:
             print("As coordenadas deste ponto estão fora do vaso")
 
-    def calcAllDist(self, SourceX, SourceY):
+    def calcAllDist(self, SourceX, SourceY, GenPlot):
+        self.__GenPlot = GenPlot
         Source = VesselPoint(SourceX, SourceY)
         self.__AuxCoords(Source)
+        if GenPlot:
+            plt.plot(self.__VesselXPath, self.__VesselYPath)
+            SensorX = []
+            SensorY = []
+            for sensor in self.SensorList:
+                SensorX.append(sensor.Xcord)
+                SensorY.append(sensor.Ycord)
+            for sensor in self.__SensorListHClone:
+                SensorX.append(sensor.Xcord)
+                SensorY.append(sensor.Ycord)
+            SensorX.append(SourceX)
+            SensorY.append(SourceY)
+            plt.plot(SensorX, SensorY, ".")
+
+        i = 0
         for sensor in self.SensorList:
+            # Limpando o histórico do plot para cada sensor
+            self.__Xpath = []
+            self.__Ypath = []
             dist = self.__calcDist(Source, sensor)
-            print(dist)
+            print(str(i) + " - Distância direta: " + str(dist))
+            self.__Xpath.append(m.nan)
+            self.__Ypath.append(m.nan)
+            HClloneSensor = self.__SensorListHClone[i]
+            if HClloneSensor.Valid:
+                dist = self.__calcDist(Source, HClloneSensor)
+                print(str(i) + " - Distância clone horizontal: " + str(dist))
+                self.__Xpath.append(m.nan)
+                self.__Ypath.append(m.nan)
+            if GenPlot:
+                plt.plot(self.__Xpath, self.__Ypath)
+            i += 1
+
+        if GenPlot:
+            plt.show()
