@@ -8,4 +8,4 @@ CoordList = [{"Xcord": 200.0, "Ycord": 1050.0},
 for coord in CoordList:
     Locate.AddSensor(Xcord=coord.get("Xcord"), Ycord=coord.get("Ycord"))
 
-Locate.calcAllDist(500,1040)
+Locate.calcAllDist(200,950)
