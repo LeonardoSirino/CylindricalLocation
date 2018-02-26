@@ -12,7 +12,7 @@ print("Semi-Perimetro: " + str(semiPerim))
 # Point 1
 P1 = {"Xcord": 10, "Ycord": 50}
 # Point 2
-P2 = {"Xcord": 150, "Ycord": -40}
+P2 = {"Xcord": 100, "Ycord": -40}
 
 tampo = geo.Geodesic(diameter / 2, f)
 temp = tampo.Inverse(lat1=0, lat2=90, lon1=0, lon2=0)
