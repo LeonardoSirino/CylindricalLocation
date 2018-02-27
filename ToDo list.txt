@@ -1,1 +1,3 @@
 Minimiza��o com dois pontos de interface tampo/casco
+Gráficos polares para representar o caminho pelo tampo
+Mostrar apenas o caminho mais curto no
