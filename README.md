@@ -1,37 +1,24 @@
-## Welcome to GitHub Pages
+## Bem vindo ao repositório do código de localização cilindrica
 
-You can use the [editor on GitHub](https://github.com/LeonardoSirino/CylindricalLocation/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+Este código pode ser acessdado no [GitHub](https://github.com/LeonardoSirino/CylindricalLocation).
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+### Descrição
 
-### Markdown
+Este repositório tem por objetivo fornecer uma biblioteca para a localização de fontes de Emissão Acústica em vasos de pressão com tampo elispoidal. Para isso são utilizados métodos de minimização e inteligência artificial que visam melhorar a precisão das técnica atualmente utilizadas.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+Outro diferencial é a utilização do cálculo de geodésicas em elipsoides, desta forma, não existem distorções nas distâncias, algo comum nas técnicas tradicionais.
 
 ```markdown
-Syntax highlighted code block
+from Routines.CilLoc import *
 
-# Header 1
-## Header 2
-### Header 3
+Locate = CylindricalLocation(1000.0, 1000.0, 750 * m.pi / 4)
+CoordList = [{"Xcord": 200.0, "Ycord": 1200.0},
+             {"Xcord": 100.0, "Ycord": 900.0},
+             {"Xcord": 200.0, "Ycord": 700.0},
+             {"Xcord": 2500.0, "Ycord": -300}]
 
-- Bulleted
-- List
+for coord in CoordList:
+    Locate.AddSensor(Xcord=coord.get("Xcord"), Ycord=coord.get("Ycord"))
 
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+Locate.calcAllDist(600, 900, True)
 ```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/LeonardoSirino/CylindricalLocation/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
