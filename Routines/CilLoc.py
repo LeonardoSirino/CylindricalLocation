@@ -175,28 +175,43 @@ class CylindricalLocation():
         else:
             Yaux = 0
 
-        min = np.min([Pcap.Xcord, Pwall.Xcord])
-        max = np.max([Pcap.Xcord, Pwall.Xcord])
+        minX = np.min([Pcap.Xcord, Pwall.Xcord])
+        maxX = np.max([Pcap.Xcord, Pwall.Xcord])
         AuxPoint = VesselPoint(0, Yaux)
-        AuxPoints = []
-        distances = []
-
+        SearchRange = slice(minX, maxX, (maxX - minX) / 100)
         AuxGenPlot = self.__GenPlot
         self.__GenPlot = False  # Desabilitando temporariamente os gráficos para melhor desempenho
-        for Xaux in np.linspace(start=min, stop=max, num=100):
+
+        def CalcWallToCap(Xaux):
+            """[Função para cálculo de distância entre um ponto no casco e outro no tampo]
+
+            Arguments:
+                Xaux {[float]} -- [Posição x do ponto auxiliar: ponto de transição casco-tampo]
+
+            Returns:
+                [totalDist] -- [Distância total entre pontos]
+            """
+
             AuxPoint.SetXcord(Xaux)
-            AuxPoints.append(AuxPoint)
             self.__AuxCoords(AuxPoint)
             AuxPoint.SetOnCap(False)
             dist1 = self.__calcDist(Pwall, AuxPoint)
             AuxPoint.SetOnCap(True)
             dist2 = self.__calcDist(AuxPoint, Pcap)
-            distances.append(dist1 + dist2)
+            totalDist = dist1 + dist2
+            return totalDist
+
+        InitGuess = opt.brute(CalcWallToCap, (SearchRange,))
+        FinalSearch = opt.minimize(CalcWallToCap, x0=InitGuess, method="BFGS")
+        # print(FinalSearch) -- Resultado da minimização
+        dist = FinalSearch.get("fun")
+        MinPos = FinalSearch.get("x")[0]
+        AuxPoint.SetXcord(MinPos)
+        BestPoint = AuxPoint
+
         self.__GenPlot = AuxGenPlot
 
-        dist = np.min(distances)
         if self.__GenPlot:  # Plot do caminho que passa pelo casco e pelo tampo
-            BestPoint = AuxPoints[distances.index(dist)]
             self.__AuxCoords(BestPoint)
             BestPoint.SetOnCap(False)
             # Plot do caminho no casco
