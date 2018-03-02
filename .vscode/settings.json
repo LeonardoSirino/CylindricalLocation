@@ -1,5 +1,35 @@
 {
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
-    "python.autoComplete.addBrackets": true
+    "python.autoComplete.addBrackets": true,
+    "terminal.integrated.rightClickCopyPaste": false,
+    "gitlens.advanced.menus": {
+        "editorContext": {
+            "blame": false,
+            "copy": false,
+            "details": false,
+            "fileDiff": false,
+            "history": false,
+            "lineDiff": false,
+            "remote": false
+        },
+        "editorTitle": {
+            "blame": true,
+            "fileDiff": false,
+            "history": false,
+            "remote": false,
+            "status": false
+        },
+        "editorTitleContext": {
+            "blame": false,
+            "fileDiff": false,
+            "history": false,
+            "remote": false
+        },
+        "explorerContext": {
+            "fileDiff": true,
+            "history": true,
+            "remote": true
+        }
+    }
 }

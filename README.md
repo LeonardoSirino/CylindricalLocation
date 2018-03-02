@@ -1,6 +1,6 @@
 ## Bem vindo ao repositório do código de localização cilindrica
 
-Este código pode ser acessdado no [GitHub](https://github.com/LeonardoSirino/CylindricalLocation).
+Este código pode ser acessado no [GitHub](https://github.com/LeonardoSirino/CylindricalLocation).
 
 ### Descrição
 
