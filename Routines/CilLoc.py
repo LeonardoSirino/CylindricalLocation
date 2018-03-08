@@ -91,10 +91,15 @@ class CylindricalLocation():
                                 lon1=lon1, lon2=lon2).get("s12")
         Path = self.cap.InverseLine(lat1=lat1, lat2=lat2, lon1=lon1, lon2=lon2)
         lenghts = np.linspace(0, smax, self.__PointsonPlot)
+        oldpathDiam = 0
         for s in lenghts:
             position = Path.Position(s12=s)
             pathDiam = (position.get("lon2") + 180) * \
                 self.diameter * m.pi / 360
+            if abs(oldpathDiam - pathDiam) > self.diameter * m.pi * 0.8:
+                self.__Ypath.append(m.nan)
+                self.__Xpath.append(m.nan)
+            oldpathDiam = pathDiam
             lataux = position.get("lat2")
             Saux = self.cap.Inverse(
                 lat1=0, lon1=0, lat2=lataux, lon2=0).get("s12")
@@ -228,8 +233,8 @@ class CylindricalLocation():
         return dist
 
     def __DistCaptoCap(self, Psup, Pinf):  # PlaceHolder
-        minX = np.min([Psup.Xcord, Pinf.Xcord])
-        maxX = np.max([Psup.Xcord, Pinf.Xcord])
+        minX = 0
+        maxX = self.diameter * m.pi
         AuxPoint1 = VesselPoint(0, self.height)
         AuxPoint2 = VesselPoint(0, 0)
         SearchRange = slice(minX, maxX, (maxX - minX) / 10)
@@ -240,8 +245,7 @@ class CylindricalLocation():
             """[Função para calcular a distância entre pontos em tampos opostos]
 
             Arguments:
-                Xaux1 {[float]} -- [coordenada X do ponto auxiliar superior]
-                Xaux2 {[float]} -- [coordenada X do ponto auxiliar inferior]
+                Xaux {[float array]} -- [vetor com as coordenadas x dos pontos auxiliares]
 
             Returns:
                 [dist] -- [distância entre os pontos]
@@ -284,11 +288,81 @@ class CylindricalLocation():
             AuxPoint2.SetOnCap(True)
             # Plot do caminho no tampo inferior
             dist3 = self.__calcDist(AuxPoint2, Pinf)
+
         dist = dist1 + dist2 + dist3
         return dist
 
     def __DistVClone(self, Source, Sensor):  # PlaceHolder
-        dist = 0
+        SemiHeight = self.height/2
+        Cond1 = (Source.Ycord > SemiHeight and Sensor.Ycord > SemiHeight) or (Source.Ycord < SemiHeight and Sensor.Ycord < SemiHeight)
+        Cond2 = not (Source.OnCap or Sensor.OnCap)
+        if Cond1 and Cond2:
+            if Source.Ycord > SemiHeight:
+                YAuxCord = self.height
+            else:
+                YAuxCord = 0
+
+            minX = 0
+            maxX = self.diameter * m.pi
+            AuxPoint1 = VesselPoint(0, YAuxCord)
+            AuxPoint2 = VesselPoint(0, YAuxCord)
+            SearchRange = slice(minX, maxX, (maxX - minX) / 10)
+            AuxGenPlot = self.__GenPlot
+            self.__GenPlot = False  # Desabilitando temporariamente os gráficos para melhor desempenho
+
+            def CalcVerticalClone(Xaux):
+                """Função auxiliar a distância entre dois pontos no casco, mas de forma que o caminho passe pelo tampo.
+                
+                Arguments:
+                Xaux {[float array]} -- [vetor com as coordenadas x dos pontos auxiliares]
+                
+                Returns:
+                    [dist] -- [distância calculada]
+                """
+
+                AuxPoint1.SetXcord(Xaux[0])
+                AuxPoint2.SetXcord(Xaux[1])
+                self.__AuxCoords(AuxPoint1)
+                self.__AuxCoords(AuxPoint2)
+                AuxPoint1.SetOnCap(False)
+                dist1 = self.__calcDist(Source, AuxPoint1)
+                AuxPoint1.SetOnCap(True)
+                AuxPoint2.SetOnCap(True)
+                dist2 = self.__calcDist(AuxPoint1, AuxPoint2)
+                AuxPoint2.SetOnCap(False)
+                dist3 = self.__calcDist(AuxPoint2, Sensor)
+                totalDist = dist1 + dist2 + dist3
+                return totalDist
+
+            InitGuess = opt.brute(CalcVerticalClone, (SearchRange, SearchRange))
+            FinalSearch = opt.minimize(CalcVerticalClone, x0=InitGuess, method="BFGS")
+            # print(FinalSearch) -- Resultado da minimização
+            dist = FinalSearch.get("fun")
+            MinPos1 = FinalSearch.get("x")[0]
+            MinPos2 = FinalSearch.get("x")[1]
+            AuxPoint1.SetXcord(MinPos1)
+            AuxPoint2.SetXcord(MinPos2)
+
+            self.__GenPlot = AuxGenPlot
+
+            if self.__GenPlot:  # Plot do caminho que passa pelo casco e pelo tampo
+                self.__AuxCoords(AuxPoint1)
+                AuxPoint1.SetOnCap(False)
+                # Plot do caminho da fonte até o ponto auxiliar 1
+                dist1 = self.__calcDist(Source, AuxPoint1)
+                AuxPoint1.SetOnCap(True)
+                AuxPoint2.SetOnCap(True)
+                # Plot do caminho entre pontos auxiliares
+                dist2 = self.__calcDist(AuxPoint1, AuxPoint2)
+                AuxPoint2.SetOnCap(False)
+                # Plot do ponto auxiliar 2 até o sensor
+                dist3 = self.__calcDist(AuxPoint2, Sensor)
+
+            dist = dist1 + dist2 + dist3
+            
+        else:
+            dist=-1
+
         return dist
 
     def AddSensor(self, Xcord, Ycord):
@@ -339,33 +413,46 @@ class CylindricalLocation():
             # Limpando o histórico do plot para cada sensor
             self.__Xpath = []
             self.__Ypath = []
+
             distDirect = self.__calcDist(Source, sensor)
             self.__Xpath.append(-10)
             self.__Ypath.append(m.nan)
+
             HClloneSensor = self.__SensorListHClone[i]
             if HClloneSensor.Valid:
                 distHClone = self.__calcDist(Source, HClloneSensor)
             else:
                 distHClone = distDirect * 10
+                self.__Xpath.append(0)
+                self.__Ypath.append(0)
             self.__Xpath.append(-10)
             self.__Ypath.append(m.nan)
 
+            distVClone = self.__DistVClone(Source, sensor)
+            if distVClone == -1:
+                distVClone = distDirect * 10
+                self.__Xpath.append(0)
+                self.__Ypath.append(0)
+            self.__Xpath.append(-10)
+            self.__Ypath.append(m.nan)
+
+            Distances = [distDirect, distHClone, distVClone]
+            print("Distâncias: ")
+            print(Distances)
+            print("A menor distância foi de " + str(np.min(Distances)))
+
             if GenPlot:
-                Xpaths = np.split(self.__Xpath, [self.__Xpath.index(-10)])
-                Ypaths = np.split(self.__Ypath, [self.__Xpath.index(-10)])
-                if distDirect > distHClone:
-                    XBestPath = Xpaths[1]
-                    XBestPath[0] = m.nan
-                    YBestPath = Ypaths[1]
-                    BestDist = distHClone
-                else:
-                    XBestPath = Xpaths[0]
-                    YBestPath = Ypaths[0]
-                    BestDist = distDirect
+                MinDistIndex = Distances.index(np.min(Distances))
+                XAllPath = np.array(self.__Xpath)
+                YAllPath = np.array(self.__Ypath)
+                Xpaths = np.split(XAllPath, np.where(XAllPath == -10)[0])
+                Ypaths = np.split(YAllPath, np.where(XAllPath == -10)[0])
+                XBestPath = Xpaths[MinDistIndex]
+                XBestPath[0] = m.nan
+                YBestPath = Ypaths[MinDistIndex]
+                YBestPath[0] = m.nan
 
                 plt.plot(XBestPath, YBestPath)
-                print("A menor distância foi de " + str(BestDist))
-            i += 1
 
         if GenPlot:
             plt.show()
