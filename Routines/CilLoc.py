@@ -289,7 +289,6 @@ class CylindricalLocation():
             # Plot do caminho no tampo inferior
             dist3 = self.__calcDist(AuxPoint2, Pinf)
 
-        dist = dist1 + dist2 + dist3
         return dist
 
     def __DistVClone(self, Source, Sensor):  # PlaceHolder
@@ -357,8 +356,6 @@ class CylindricalLocation():
                 AuxPoint2.SetOnCap(False)
                 # Plot do ponto auxiliar 2 até o sensor
                 dist3 = self.__calcDist(AuxPoint2, Sensor)
-
-            dist = dist1 + dist2 + dist3
             
         else:
             dist=-1
@@ -367,7 +364,7 @@ class CylindricalLocation():
 
     def AddSensor(self, Xcord, Ycord):
         # Conditions
-        C1 = Xcord > 0 and Xcord < self.diameter * m.pi
+        C1 = Xcord >= 0 and Xcord <= self.diameter * m.pi
         C2 = Ycord > - self.SemiPerimeter * \
             1.01 and Ycord < (self.height + self.SemiPerimeter) * 1.01
         if C1 and C2:
@@ -397,6 +394,7 @@ class CylindricalLocation():
         self.__GenPlot = GenPlot
         Source = VesselPoint(SourceX, SourceY)
         self.__AuxCoords(Source)
+        MinDistances = []
         if GenPlot:
             plt.plot(self.__VesselXPath, self.__VesselYPath)
             SensorX = []
@@ -407,6 +405,7 @@ class CylindricalLocation():
             SensorX.append(SourceX)
             SensorY.append(SourceY)
             plt.plot(SensorX, SensorY, ".")
+
 
         i = 0
         for sensor in self.SensorList:
@@ -437,9 +436,7 @@ class CylindricalLocation():
             self.__Ypath.append(m.nan)
 
             Distances = [distDirect, distHClone, distVClone]
-            print("Distâncias: ")
-            print(Distances)
-            print("A menor distância foi de " + str(np.min(Distances)))
+            MinDistances.append(np.min(Distances))
 
             if GenPlot:
                 MinDistIndex = Distances.index(np.min(Distances))
@@ -451,8 +448,11 @@ class CylindricalLocation():
                 XBestPath[0] = m.nan
                 YBestPath = Ypaths[MinDistIndex]
                 YBestPath[0] = m.nan
+                print("Fonte: " + str(round(Source.Xcord,1)) + " - " + str(round(Source.Ycord,1)) + " -- Sensor: " + str(round(sensor.Xcord,1)) + " - " + str(round(sensor.Ycord,1)) + " -- Distância: " + str(round(np.min(Distances),3)))
 
                 plt.plot(XBestPath, YBestPath)
 
         if GenPlot:
             plt.show()
+
+        return MinDistances

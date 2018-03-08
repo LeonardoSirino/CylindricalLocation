@@ -1,18 +1,18 @@
 from Routines.CilLoc import *
 import numpy as np
+import time
 
 Locate = CylindricalLocation(1000.0, 1000.0, 750 * m.pi / 4)
 
-CoordList = [{"Xcord": 200.0, "Ycord": 50.0}]
+GridElements = 7
+Xcords = np.linspace(0,2800, num = GridElements)
+Ycords = np.linspace(-500, 1500, num = GridElements)
 
-"""Pontos uniformes no tampo inferior
-CoordList = []
-for height in np.linspace(-500, -10, num=5):
-    CoordList += [{"Xcord": 200, "Ycord": height}]
+CoordList= []
 
-for X in np.linspace(200, 3000, num=5):
-    CoordList += [{"Xcord": X, "Ycord": -500}]
-"""
+for X in Xcords:
+    for Y in Ycords:
+        CoordList += [{"Xcord": X, "Ycord": Y}]
 
 """ Pontos aleatórios
 CoordList = [{"Xcord": 200.0, "Ycord": 1200.0},
@@ -24,4 +24,9 @@ CoordList = [{"Xcord": 200.0, "Ycord": 1200.0},
 for coord in CoordList:
     Locate.AddSensor(Xcord=coord.get("Xcord"), Ycord=coord.get("Ycord"))
 
-Locate.calcAllDist(2000,50, True)
+t0 = time.time()
+
+distances = Locate.calcAllDist(2000,-100, True)
+
+t1 = time.time()
+print("Tempo decorrido: " + str(t1-t0))
