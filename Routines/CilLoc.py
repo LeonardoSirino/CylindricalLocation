@@ -265,9 +265,11 @@ class CylindricalLocation():
             totalDist = dist1 + dist2 + dist3
             return totalDist
 
+        # -- Chute inicial com otimização bruta
         InitGuess = opt.brute(CalcCaptoCap, (SearchRange, SearchRange))
+        #InitGuess = [self.diameter * m.pi / 2, self.diameter * m.pi / 2] #-- Chute inicial sem otimização bruta
         FinalSearch = opt.minimize(CalcCaptoCap, x0=InitGuess, method="BFGS")
-        # print(FinalSearch) -- Resultado da minimização
+        # print(FinalSearch)  # -- Resultado da minimização
         dist = FinalSearch.get("fun")
         MinPosSup = FinalSearch.get("x")[0]
         MinPosInf = FinalSearch.get("x")[1]
@@ -292,8 +294,9 @@ class CylindricalLocation():
         return dist
 
     def __DistVClone(self, Source, Sensor):  # PlaceHolder
-        SemiHeight = self.height/2
-        Cond1 = (Source.Ycord > SemiHeight and Sensor.Ycord > SemiHeight) or (Source.Ycord < SemiHeight and Sensor.Ycord < SemiHeight)
+        SemiHeight = self.height / 2
+        Cond1 = (Source.Ycord > SemiHeight and Sensor.Ycord > SemiHeight) or (
+            Source.Ycord < SemiHeight and Sensor.Ycord < SemiHeight)
         Cond2 = not (Source.OnCap or Sensor.OnCap)
         if Cond1 and Cond2:
             if Source.Ycord > SemiHeight:
@@ -311,10 +314,10 @@ class CylindricalLocation():
 
             def CalcVerticalClone(Xaux):
                 """Função auxiliar a distância entre dois pontos no casco, mas de forma que o caminho passe pelo tampo.
-                
+
                 Arguments:
                 Xaux {[float array]} -- [vetor com as coordenadas x dos pontos auxiliares]
-                
+
                 Returns:
                     [dist] -- [distância calculada]
                 """
@@ -333,8 +336,10 @@ class CylindricalLocation():
                 totalDist = dist1 + dist2 + dist3
                 return totalDist
 
-            InitGuess = opt.brute(CalcVerticalClone, (SearchRange, SearchRange))
-            FinalSearch = opt.minimize(CalcVerticalClone, x0=InitGuess, method="BFGS")
+            InitGuess = opt.brute(
+                CalcVerticalClone, (SearchRange, SearchRange))
+            FinalSearch = opt.minimize(
+                CalcVerticalClone, x0=InitGuess, method="BFGS")
             # print(FinalSearch) -- Resultado da minimização
             dist = FinalSearch.get("fun")
             MinPos1 = FinalSearch.get("x")[0]
@@ -356,9 +361,9 @@ class CylindricalLocation():
                 AuxPoint2.SetOnCap(False)
                 # Plot do ponto auxiliar 2 até o sensor
                 dist3 = self.__calcDist(AuxPoint2, Sensor)
-            
+
         else:
-            dist=-1
+            dist = -1
 
         return dist
 
@@ -406,7 +411,6 @@ class CylindricalLocation():
             SensorY.append(SourceY)
             plt.plot(SensorX, SensorY, ".")
 
-
         i = 0
         for sensor in self.SensorList:
             # Limpando o histórico do plot para cada sensor
@@ -448,7 +452,15 @@ class CylindricalLocation():
                 XBestPath[0] = m.nan
                 YBestPath = Ypaths[MinDistIndex]
                 YBestPath[0] = m.nan
-                print("Fonte: " + str(round(Source.Xcord,1)) + " - " + str(round(Source.Ycord,1)) + " -- Sensor: " + str(round(sensor.Xcord,1)) + " - " + str(round(sensor.Ycord,1)) + " -- Distância: " + str(round(np.min(Distances),3)))
+                if MinDistIndex == 0:
+                    path = "CD"
+                elif MinDistIndex == 1:
+                    path = "CH"
+                else:
+                    path = "CV"
+
+                print("Fonte: " + str(round(Source.Xcord, 1)) + " - " + str(round(Source.Ycord, 1)) + " -- Sensor: " + str(round(
+                    sensor.Xcord, 1)) + " - " + str(round(sensor.Ycord, 1)) + " -- Distância: " + str(round(np.min(Distances), 3)) + " -- " + path)
 
                 plt.plot(XBestPath, YBestPath)
 
