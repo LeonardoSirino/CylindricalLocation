@@ -40,21 +40,58 @@ class VesselPoint():
 
         self.Valid = Valid
 
+    def __str__(self):
+        if self.Valid:
+            Valido = "Valido"
+        else:
+            Valido = "Invalido"
+        text = Valido + " x: " + str(self.Xcord) + " y: " + str(self.Ycord)
+        return text
+
 
 class CylindricalLocation():
-    def __init__(self, diameter, height, SemiPerimeter):
+    def __init__(self, diameter, height):
         self.diameter = diameter
         self.height = height
-        self.SemiPerimeter = SemiPerimeter
-        self.f = SemiPerimeter * 4 * 2 / \
-            (m.pi * diameter) - 1  # Achatamento do tampo
         self.SensorList = []
         self.__SensorListHClone = []
-        self.cap = geo.Geodesic(self.diameter / 2, self.f)
         self.__Xpath = []
         self.__Ypath = []
         self.__GenPlot = False
         self.__PointsonPlot = 100
+
+    def set_f(self, f):
+        self.f = f
+        self.cap = geo.Geodesic(self.diameter / 2, f)
+        result = self.cap.Inverse(lat1=0, lon1=0, lat2=90, lon2=0)
+        self.SemiPerimeter = result.get("s12")
+        self.__DrawVessel()
+
+    def set_semiPerimeter(self, SemiPerimeter):
+        self.SemiPerimeter = SemiPerimeter
+
+        def CalcSemiPerimeter(f):
+            cap = geo.Geodesic(self.diameter / 2, f)
+            result = cap.Inverse(lat1=0, lon1=0, lat2=90, lon2=0)
+            CalcSP = result.get('s12')
+            return CalcSP
+
+        res = opt.minimize(lambda x: (CalcSemiPerimeter(
+            x) - SemiPerimeter)**2, bounds=[(0, 0.999)], method='L-BFGS-B', x0=0.5)
+        self.f = res.get("x")[0]
+        self.cap = geo.Geodesic(self.diameter / 2, self.f)
+        self.__DrawVessel()
+
+    def PrintAllSensors(self):
+        print("Sensores originais:")
+        for sensor in self.SensorList:
+            print(sensor)
+
+        print("\n Clones horizontais:")
+        for sensor in self.__SensorListHClone:
+            print(sensor)
+
+    def __DrawVessel(self):
         self.__VesselXPath = self.__PlotRectangle(0, 0, self.diameter * m.pi, -self.SemiPerimeter).get("xpath") + self.__PlotRectangle(
             0, 0, self.diameter * m.pi, self.height).get("xpath") + self.__PlotRectangle(0, self.height, self.diameter * m.pi, self.SemiPerimeter).get("xpath")
         self.__VesselYPath = self.__PlotRectangle(0, 0, self.diameter * m.pi, -self.SemiPerimeter).get("ypath") + self.__PlotRectangle(
@@ -185,10 +222,7 @@ class CylindricalLocation():
         else:
             Yaux = 0
 
-        minX = np.min([Pcap.Xcord, Pwall.Xcord])
-        maxX = np.max([Pcap.Xcord, Pwall.Xcord])
         AuxPoint = VesselPoint(0, Yaux)
-        SearchRange = slice(minX, maxX, (maxX - minX) / 100)
         AuxGenPlot = self.__GenPlot
         self.__GenPlot = False  # Desabilitando temporariamente os gráficos para melhor desempenho
 
@@ -211,7 +245,8 @@ class CylindricalLocation():
             totalDist = dist1 + dist2
             return totalDist
 
-        InitGuess = opt.brute(CalcWallToCap, (SearchRange,))
+        InitGuess = opt.brute(
+            CalcWallToCap, ((0, m.pi * self.diameter),), Ns=6)
         FinalSearch = opt.minimize(CalcWallToCap, x0=InitGuess, method="BFGS")
         # print(FinalSearch) -- Resultado da minimização
         dist = FinalSearch.get("fun")
@@ -233,11 +268,8 @@ class CylindricalLocation():
         return dist
 
     def __DistCaptoCap(self, Psup, Pinf):  # PlaceHolder
-        minX = 0
-        maxX = self.diameter * m.pi
         AuxPoint1 = VesselPoint(0, self.height)
         AuxPoint2 = VesselPoint(0, 0)
-        SearchRange = slice(minX, maxX, (maxX - minX) / 10)
         AuxGenPlot = self.__GenPlot
         self.__GenPlot = False  # Desabilitando temporariamente os gráficos para melhor desempenho
 
@@ -266,8 +298,8 @@ class CylindricalLocation():
             return totalDist
 
         # -- Chute inicial com otimização bruta
-        InitGuess = opt.brute(CalcCaptoCap, (SearchRange, SearchRange))
-        #InitGuess = [self.diameter * m.pi / 2, self.diameter * m.pi / 2] #-- Chute inicial sem otimização bruta
+        SearchRange = (0, m.pi * self.diameter)
+        InitGuess = opt.brute(CalcCaptoCap, (SearchRange, SearchRange), Ns=6)
         FinalSearch = opt.minimize(CalcCaptoCap, x0=InitGuess, method="BFGS")
         # print(FinalSearch)  # -- Resultado da minimização
         dist = FinalSearch.get("fun")
@@ -293,7 +325,7 @@ class CylindricalLocation():
 
         return dist
 
-    def __DistVClone(self, Source, Sensor):  # PlaceHolder
+    def __DistVClone(self, Source, Sensor):
         SemiHeight = self.height / 2
         Cond1 = (Source.Ycord > SemiHeight and Sensor.Ycord > SemiHeight) or (
             Source.Ycord < SemiHeight and Sensor.Ycord < SemiHeight)
@@ -304,11 +336,8 @@ class CylindricalLocation():
             else:
                 YAuxCord = 0
 
-            minX = 0
-            maxX = self.diameter * m.pi
             AuxPoint1 = VesselPoint(0, YAuxCord)
             AuxPoint2 = VesselPoint(0, YAuxCord)
-            SearchRange = slice(minX, maxX, (maxX - minX) / 10)
             AuxGenPlot = self.__GenPlot
             self.__GenPlot = False  # Desabilitando temporariamente os gráficos para melhor desempenho
 
@@ -336,8 +365,9 @@ class CylindricalLocation():
                 totalDist = dist1 + dist2 + dist3
                 return totalDist
 
+            SearchRange = (0, self.diameter * m.pi)
             InitGuess = opt.brute(
-                CalcVerticalClone, (SearchRange, SearchRange))
+                CalcVerticalClone, (SearchRange, SearchRange), Ns=6)
             FinalSearch = opt.minimize(
                 CalcVerticalClone, x0=InitGuess, method="BFGS")
             # print(FinalSearch) -- Resultado da minimização
@@ -395,6 +425,18 @@ class CylindricalLocation():
         else:
             print("As coordenadas deste ponto estão fora do vaso")
 
+    def StructuredSensorDistribution(self, lines, sensorsInLine, x0, y0, dx, dy, aligned):
+        for i in range(0, lines):
+            if not aligned and (-1)**(i + 1) == 1:
+                x1 = x0 + dx / 2
+            else:
+                x1 = x0
+            y1 = y0 + i * dy
+            for j in range(0, sensorsInLine):
+                x = x1 + j * dx
+                y = y1
+                self.AddSensor(Xcord=x, Ycord=y)
+
     def calcAllDist(self, SourceX, SourceY, GenPlot):
         self.__GenPlot = GenPlot
         Source = VesselPoint(SourceX, SourceY)
@@ -411,8 +453,9 @@ class CylindricalLocation():
             SensorY.append(SourceY)
             plt.plot(SensorX, SensorY, ".")
 
-        i = 0
+        i = -1
         for sensor in self.SensorList:
+            i += 1
             # Limpando o histórico do plot para cada sensor
             self.__Xpath = []
             self.__Ypath = []
