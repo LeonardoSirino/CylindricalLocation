@@ -9,9 +9,10 @@ class VesselPoint():
     """Classe para definir as propriedades de um ponto no vaso
     """
 
-    def __init__(self, Xcord, Ycord):
+    def __init__(self, Xcord, Ycord, ID):
         self.Xcord = Xcord
         self.Ycord = Ycord
+        self.ID = ID
         self.Valid = True
 
     def SetXcord(self, Xcord):
@@ -45,7 +46,8 @@ class VesselPoint():
             Valido = "Valido"
         else:
             Valido = "Invalido"
-        text = Valido + " x: " + str(self.Xcord) + " y: " + str(self.Ycord)
+        text = Valido + "ID: " + \
+            str(self.ID) + " x: " + str(self.Xcord) + " y: " + str(self.Ycord)
         return text
 
 
@@ -54,11 +56,15 @@ class CylindricalLocation():
         self.diameter = diameter
         self.height = height
         self.SensorList = []
+        self.veloc = 1
         self.__SensorListHClone = []
         self.__Xpath = []
         self.__Ypath = []
         self.__GenPlot = False
         self.__PointsonPlot = 100
+        self.__SensorID = -1
+        self.__tempSensorList = None
+        self.__tempSensorListHClone = None
 
     def set_f(self, f):
         self.f = f
@@ -81,6 +87,10 @@ class CylindricalLocation():
         self.f = res.get("x")[0]
         self.cap = geo.Geodesic(self.diameter / 2, self.f)
         self.__DrawVessel()
+
+    def SetVelocity(self, velocity):
+        "Definição da velocidade em mm/s"
+        self.veloc = velocity
 
     def PrintAllSensors(self):
         print("Sensores originais:")
@@ -222,7 +232,7 @@ class CylindricalLocation():
         else:
             Yaux = 0
 
-        AuxPoint = VesselPoint(0, Yaux)
+        AuxPoint = VesselPoint(0, Yaux, -2)
         AuxGenPlot = self.__GenPlot
         self.__GenPlot = False  # Desabilitando temporariamente os gráficos para melhor desempenho
 
@@ -267,9 +277,9 @@ class CylindricalLocation():
 
         return dist
 
-    def __DistCaptoCap(self, Psup, Pinf):  # PlaceHolder
-        AuxPoint1 = VesselPoint(0, self.height)
-        AuxPoint2 = VesselPoint(0, 0)
+    def __DistCaptoCap(self, Psup, Pinf):
+        AuxPoint1 = VesselPoint(0, self.height, -2)
+        AuxPoint2 = VesselPoint(0, 0, -2)
         AuxGenPlot = self.__GenPlot
         self.__GenPlot = False  # Desabilitando temporariamente os gráficos para melhor desempenho
 
@@ -336,8 +346,8 @@ class CylindricalLocation():
             else:
                 YAuxCord = 0
 
-            AuxPoint1 = VesselPoint(0, YAuxCord)
-            AuxPoint2 = VesselPoint(0, YAuxCord)
+            AuxPoint1 = VesselPoint(0, YAuxCord, -2)
+            AuxPoint2 = VesselPoint(0, YAuxCord, -2)
             AuxGenPlot = self.__GenPlot
             self.__GenPlot = False  # Desabilitando temporariamente os gráficos para melhor desempenho
 
@@ -403,10 +413,12 @@ class CylindricalLocation():
         C2 = Ycord > - self.SemiPerimeter * \
             1.01 and Ycord < (self.height + self.SemiPerimeter) * 1.01
         if C1 and C2:
-            SensorCoords = VesselPoint(Xcord, Ycord)
+            self.__SensorID += 1
+            ID = self.__SensorID
+            SensorCoords = VesselPoint(Xcord, Ycord, ID)
             self.__AuxCoords(SensorCoords)
             self.SensorList.append(SensorCoords)
-            SensorHCloneCoords = VesselPoint(0, Ycord)
+            SensorHCloneCoords = VesselPoint(0, Ycord, ID)
             if SensorCoords.Ycord >= 0 and SensorCoords.Ycord <= self.height:  # Ponto no casco do vaso
                 # Sensor posicionado na porção direita do casco
                 if SensorCoords.Xcord >= self.diameter * m.pi / 2:
@@ -437,9 +449,70 @@ class CylindricalLocation():
                 y = y1
                 self.AddSensor(Xcord=x, Ycord=y)
 
-    def calcAllDist(self, SourceX, SourceY, GenPlot):
+    def FindFurthestPoint(self):
+        def CalcDistRemotePoint(x):
+            distances = self.calcAllDist(
+                SourceX=x[0], SourceY=x[1], GenPlot=False)
+            return np.min(distances)
+
+        def CallBack(xk):
+            print(xk)
+            maxDist = CalcDistRemotePoint(xk)
+            print("Max distance: " + str(maxDist))
+
+        BruteRes = opt.brute(lambda x: -CalcDistRemotePoint(x), ranges=[(
+            0, self.diameter * m.pi), (-self.SemiPerimeter, self.height + self.SemiPerimeter)], Ns=5)
+        # print(BruteRes)
+        res = opt.minimize(lambda x: -CalcDistRemotePoint(x), method='L-BFGS-B', bounds=[(
+            0, self.diameter * m.pi), (-self.SemiPerimeter, self.height + self.SemiPerimeter)], x0=BruteRes, callback=CallBack, options={'maxfun': 200, 'ftol': 0.0000001})
+
+        return res.get('x')
+
+    def __removeSensors(self, IDs):
+        if IDs == [-1]:
+            pass
+        else:
+            ValidSensors = []
+            InvalidSensors = []
+            for sensor in self.SensorList:
+                try:
+                    IDs.index(sensor.ID)
+                    ValidSensors.append(sensor)
+                except:
+                    InvalidSensors.append(sensor)
+
+            self.SensorList = ValidSensors
+            self.__tempSensorList = InvalidSensors
+
+            ValidSensors = []
+            InvalidSensors = []
+            for sensor in self.__SensorListHClone:
+                try:
+                    IDs.index(sensor.ID)
+                    ValidSensors.append(sensor)
+                except:
+                    InvalidSensors.append(sensor)
+
+            self.__SensorListHClone = ValidSensors
+            self.__tempSensorListHClone = InvalidSensors
+
+    def __returnSensors(self):
+        # Os sensores sempre voltam ordenados às suas posições
+        if not self.__tempSensorList == None:
+            temp = self.SensorList + self.__tempSensorList
+            self.SensorList = [None] * len(temp)
+            for sensor in temp:
+                self.SensorList[sensor.ID] = sensor
+
+            temp = self.__SensorListHClone + self.__tempSensorListHClone
+            self.__SensorListHClone = [None] * len(temp)
+            for sensor in temp:
+                self.__SensorListHClone[sensor.ID] = sensor
+
+    def calcAllDist(self, SourceX, SourceY, GenPlot, IDs):
+        self.__removeSensors(IDs)
         self.__GenPlot = GenPlot
-        Source = VesselPoint(SourceX, SourceY)
+        Source = VesselPoint(SourceX, SourceY, -1)
         self.__AuxCoords(Source)
         MinDistances = []
         if GenPlot:
@@ -510,4 +583,80 @@ class CylindricalLocation():
         if GenPlot:
             plt.show()
 
+        self.__returnSensors()
         return MinDistances
+
+    def __SimplifiedDistances(self, x, y, IDs):
+        self.__removeSensors(IDs)
+        distances = []
+        for (sensor, clone) in zip(self.SensorList, self.__SensorListHClone):
+            dist1 = np.sqrt((x - sensor.Xcord)**2 + (y - sensor.Ycord)**2)
+            if clone.Valid:
+                dist2 = np.sqrt((x - clone.Xcord)**2 + (y - clone.Ycord)**2)
+            else:
+                dist2 = 10 * dist1
+            distances.append(np.min([dist1, dist2]))
+
+        self.__returnSensors()
+        return distances
+
+    def returnDeltaT(self, x, y, IDs, exact):
+        if exact:
+            distances = self.calcAllDist(x, y, False, IDs)
+        else:
+            distances = self.__SimplifiedDistances(x, y, IDs)
+        NPdist = np.array(distances)
+        NPdist += -np.min(NPdist)
+        times = NPdist / self.veloc
+        return times
+
+    def __orderMembers(self, TimesToSensors):
+        IDs = []
+        for member in TimesToSensors:
+            (ID, time) = member
+            IDs.append(ID)
+
+        IDs.sort()
+        OrderedMembers = [0] * len(IDs)
+        for member in TimesToSensors:
+            (ID, time) = member
+            i = IDs.index(ID)
+            OrderedMembers[i] = member
+
+        return OrderedMembers
+
+    def simpleLocation(self, TimesToSensors):
+        """
+        Melhorar Chute inicial e definir pesos nos resíduos
+        Passar resultado desse processo para a localização completa (considerando as geodésicas)
+        """
+
+        data = self.__orderMembers(TimesToSensors)
+        IDs = []
+        MeasTimes = []
+
+        for member in data:
+            (ID, time) = member
+            IDs.append(ID)
+            MeasTimes.append(time)
+
+        MeasTimes = np.array(MeasTimes)
+        normalizer = 1 / np.max(MeasTimes)
+
+        def CalcResidue(x):
+            tcalc = self.returnDeltaT(x[0], x[1], IDs, False)
+            tcalc = np.array(tcalc)
+            residue = np.sqrt(np.sum(((tcalc - MeasTimes) * normalizer)**2))
+            return residue
+
+        res = opt.minimize(CalcResidue, x0=[400, 500], method='BFGS')
+        print(res)
+        """
+        x = res.get('x')
+        print(MeasTimes)
+        tcalc = self.returnDeltaT(x[0], x[1], IDs, False)
+        print(tcalc)
+        print((MeasTimes - tcalc)**2)
+        residue = CalcResidue(x)
+        print(residue)
+        """
