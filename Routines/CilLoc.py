@@ -626,11 +626,6 @@ class CylindricalLocation():
         return OrderedMembers
 
     def simpleLocation(self, TimesToSensors):
-        """
-        Melhorar Chute inicial e definir pesos nos resíduos
-        Passar resultado desse processo para a localização completa (considerando as geodésicas)
-        """
-
         data = self.__orderMembers(TimesToSensors)
         IDs = []
         MeasTimes = []
@@ -641,7 +636,7 @@ class CylindricalLocation():
             MeasTimes.append(time)
 
         MeasTimes = np.array(MeasTimes)
-        normalizer = 1 / np.max(MeasTimes)
+        normalizer = 1 / (np.max(MeasTimes) + 1)
 
         def CalcResidue(x):
             tcalc = self.returnDeltaT(x[0], x[1], IDs, False)
@@ -650,13 +645,35 @@ class CylindricalLocation():
             return residue
 
         res = opt.minimize(CalcResidue, x0=[400, 500], method='BFGS')
+        #print("Localização simplificada:")
+        # print(res.get("x"))
+
+        return res.get("x")
+
+    def completeLocation(self, TimesToSensors):
+        data = self.__orderMembers(TimesToSensors)
+        IDs = []
+        MeasTimes = []
+
+        for member in data:
+            (ID, time) = member
+            IDs.append(ID)
+            MeasTimes.append(time)
+
+        MeasTimes = np.array(MeasTimes)
+        normalizer = 1 / (np.max(MeasTimes) + 1)
+
+        def CalcResidue(x):
+            tcalc = self.returnDeltaT(x[0], x[1], IDs, True)
+            tcalc = np.array(tcalc)
+            residue = np.sqrt(np.sum(((tcalc - MeasTimes) * normalizer)**2))
+            return residue
+
+        x0 = self.simpleLocation(TimesToSensors)
+
+        res = opt.minimize(CalcResidue, x0=x0, method='BFGS', options={"gtol": 3E-3})
         print(res)
-        """
-        x = res.get('x')
-        print(MeasTimes)
-        tcalc = self.returnDeltaT(x[0], x[1], IDs, False)
-        print(tcalc)
-        print((MeasTimes - tcalc)**2)
-        residue = CalcResidue(x)
-        print(residue)
-        """
+        #print("Localização completa:")
+        # print(res.get("x"))
+
+        return res.get("x")

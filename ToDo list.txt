@@ -1,3 +1,4 @@
-Minimiza��o com dois pontos de interface tampo/casco
-Gráficos polares para representar o caminho pelo tampo
-Mostrar apenas o caminho mais curto no plot
+﻿Algoritmo genético antes do método de Newron para se evitar os mínimos locais
+Espécies para tampos e casco?
+Definir tolerâncias de parada adequadas
+Diminuir o tempo de cálculo de distância (geodésica) e miminizar o número de chamadas
