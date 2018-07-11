@@ -29,6 +29,15 @@ class VesselPoint():
 
     def SetCap(self, Cap):
         self.Cap = Cap
+        
+    def SetXcap(self, X):
+        self.Xcap = X
+
+    def SetYcap(self, Y):
+        self.Ycap = Y
+
+    def SetZcap(self, Z):
+        self.Zcap = Z
 
     def SetValid(self, Valid):
         """Validade de um ponto para se calcular a distância.
@@ -65,6 +74,14 @@ class CylindricalLocation():
         self.__SensorID = -1
         self.__tempSensorList = None
         self.__tempSensorListHClone = None
+        self.CalcMode = 'geodesic' 
+        """
+        geodesic - usando biblioteca do Python - GeoplotLib
+        section - usando seccionamento do tampo
+        """
+
+    def setCalcMode(self, mode):
+        self.CalcMode = mode
 
     def set_f(self, f):
         self.f = f
@@ -117,45 +134,64 @@ class CylindricalLocation():
         Função para calcular as coordenadas auxliares (latitude e longitude) quando a coordenada estiver no tampo
         """
         if Coords.Ycord >= self.height or Coords.Ycord <= 0:
-            lon = Coords.Xcord / (self.diameter * m.pi) * 360 - 180
-            if Coords.Ycord >= self.height:
-                Coords.SetCap("sup")
-                s12 = Coords.Ycord - self.height
-            else:
-                s12 = abs(Coords.Ycord)
-                Coords.SetCap("inf")
+            if self.CalcMode == 'geodesic':
+                """Calculo de variáveis auxiliares necessárias para o uso da geodésicas
+                """
 
-            EndCap = self.cap.Direct(lat1=0, lon1=lon, s12=s12, azi1=0)
-            lat = EndCap.get("lat2")
-            Coords.SetLat(lat)
-            Coords.SetLon(lon)
+                lon = Coords.Xcord / (self.diameter * m.pi) * 360 - 180
+                if Coords.Ycord >= self.height:
+                    Coords.SetCap("sup")
+                    s12 = Coords.Ycord - self.height
+                else:
+                    s12 = abs(Coords.Ycord)
+                    Coords.SetCap("inf")
+
+                EndCap = self.cap.Direct(lat1=0, lon1=lon, s12=s12, azi1=0)
+                lat = EndCap.get("lat2")
+                Coords.SetLat(lat)
+                Coords.SetLon(lon)
+            elif self.CalcMode == 'section':
+                """Cálculo de variáveis auxliars para o uso do seccionamento do tampo
+                """
+                Coords.Xcap = 0
+                Coords.Ycap = 0
+                Coords.Zcap = 0
+            else:
+                print("Modo inválido")
+
             Coords.SetOnCap(True)
         else:
             Coords.SetOnCap(False)
 
     def __PlotonCap(self, lat1, lat2, lon1, lon2, cap):
-        smax = self.cap.Inverse(lat1=lat1, lat2=lat2,
-                                lon1=lon1, lon2=lon2).get("s12")
-        Path = self.cap.InverseLine(lat1=lat1, lat2=lat2, lon1=lon1, lon2=lon2)
-        lenghts = np.linspace(0, smax, self.__PointsonPlot)
-        oldpathDiam = 0
-        for s in lenghts:
-            position = Path.Position(s12=s)
-            pathDiam = (position.get("lon2") + 180) * \
-                self.diameter * m.pi / 360
-            if abs(oldpathDiam - pathDiam) > self.diameter * m.pi * 0.8:
-                self.__Ypath.append(m.nan)
-                self.__Xpath.append(m.nan)
-            oldpathDiam = pathDiam
-            lataux = position.get("lat2")
-            Saux = self.cap.Inverse(
-                lat1=0, lon1=0, lat2=lataux, lon2=0).get("s12")
-            if cap == "sup":
-                Saux = Saux + self.height
-            else:
-                Saux = -Saux
-            self.__Ypath.append(Saux)
-            self.__Xpath.append(pathDiam)
+        if self.CalcMode == 'geodesic':
+            smax = self.cap.Inverse(lat1=lat1, lat2=lat2,
+                                    lon1=lon1, lon2=lon2).get("s12")
+            Path = self.cap.InverseLine(lat1=lat1, lat2=lat2, lon1=lon1, lon2=lon2)
+            lenghts = np.linspace(0, smax, self.__PointsonPlot)
+            oldpathDiam = 0
+            for s in lenghts:
+                position = Path.Position(s12=s)
+                pathDiam = (position.get("lon2") + 180) * \
+                    self.diameter * m.pi / 360
+                if abs(oldpathDiam - pathDiam) > self.diameter * m.pi * 0.8:
+                    self.__Ypath.append(m.nan)
+                    self.__Xpath.append(m.nan)
+                oldpathDiam = pathDiam
+                lataux = position.get("lat2")
+                Saux = self.cap.Inverse(
+                    lat1=0, lon1=0, lat2=lataux, lon2=0).get("s12")
+                if cap == "sup":
+                    Saux = Saux + self.height
+                else:
+                    Saux = -Saux
+                self.__Ypath.append(Saux)
+                self.__Xpath.append(pathDiam)
+        elif self.CalcMode == 'section':
+            print("Não há plots no tampo para esse modo")
+        else:
+            print("Modo inválido")
+
 
     def __PlotonWall(self, x1, x2, y1, y2):
         xpath = np.linspace(x1, x2, self.__PointsonPlot)
