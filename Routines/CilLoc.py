@@ -29,7 +29,7 @@ class VesselPoint():
 
     def SetCap(self, Cap):
         self.Cap = Cap
-        
+
     def SetXcap(self, X):
         self.Xcap = X
 
@@ -74,14 +74,44 @@ class CylindricalLocation():
         self.__SensorID = -1
         self.__tempSensorList = None
         self.__tempSensorListHClone = None
-        self.CalcMode = 'geodesic' 
+        self.CalcMode = 'geodesic'
         """
         geodesic - usando biblioteca do Python - GeoplotLib
         section - usando seccionamento do tampo
         """
+        self.__ellipseDivs = 100
 
     def setCalcMode(self, mode):
         self.CalcMode = mode
+
+    def __ellipsePosition(self, a, f, s0):
+        N = 500
+        s = 0
+        R1 = a
+        z1 = 0
+        dR = 2 * a / self.__ellipseDivs
+        while s < s0:
+            R2 = R1 - dR
+            z2 = a * f * m.sqrt(1 - R2**2 / a**2)
+            ds = m.sqrt((R2 - R1)**2 + (z2 - z1)**2)
+            s += ds
+            R1 = R2
+            z1 = z2
+
+        return (a - R1, z1)
+
+    def __ellipseArc(self, Ri, Rf, a, f):
+        s = 0
+        z1 = a * f * m.sqrt(1 - Ri**2 / a**2)
+        dR = (Rf - Ri) / self.__ellipseDivs
+        radius = np.linspace(Ri, Rf, num=self.__ellipseDivs)
+        for R in radius:
+            z2 = a * f * m.sqrt(1 - R**2 / a**2)
+            ds = m.sqrt(dR**2 + (z2 - z1)**2)
+            s += ds
+            z1 = z2
+
+        return s
 
     def set_f(self, f):
         self.f = f
@@ -151,11 +181,21 @@ class CylindricalLocation():
                 Coords.SetLat(lat)
                 Coords.SetLon(lon)
             elif self.CalcMode == 'section':
-                """Cálculo de variáveis auxliars para o uso do seccionamento do tampo
+                """Cálculo de variáveis auxiliares para o uso do seccionamento do tampo
                 """
-                Coords.Xcap = 0
-                Coords.Ycap = 0
-                Coords.Zcap = 0
+                lon = Coords.Xcord / (self.diameter * m.pi) * 2 * m.pi - m.pi
+                if Coords.Ycord >= self.height:
+                    Coords.SetCap("sup")
+                    s = Coords.Ycord - self.height
+                else:
+                    s = abs(Coords.Ycord)
+                    Coords.SetCap("inf")
+
+                (R, z) = self.__ellipsePosition(self.diameter / 2, self.f, s)
+
+                Coords.Xcap = R * m.cos(lon)
+                Coords.Ycap = R * m.sin(lon)
+                Coords.Zcap = z
             else:
                 print("Modo inválido")
 
@@ -167,7 +207,8 @@ class CylindricalLocation():
         if self.CalcMode == 'geodesic':
             smax = self.cap.Inverse(lat1=lat1, lat2=lat2,
                                     lon1=lon1, lon2=lon2).get("s12")
-            Path = self.cap.InverseLine(lat1=lat1, lat2=lat2, lon1=lon1, lon2=lon2)
+            Path = self.cap.InverseLine(
+                lat1=lat1, lat2=lat2, lon1=lon1, lon2=lon2)
             lenghts = np.linspace(0, smax, self.__PointsonPlot)
             oldpathDiam = 0
             for s in lenghts:
@@ -191,7 +232,6 @@ class CylindricalLocation():
             print("Não há plots no tampo para esse modo")
         else:
             print("Modo inválido")
-
 
     def __PlotonWall(self, x1, x2, y1, y2):
         xpath = np.linspace(x1, x2, self.__PointsonPlot)
@@ -707,7 +747,8 @@ class CylindricalLocation():
 
         x0 = self.simpleLocation(TimesToSensors)
 
-        res = opt.minimize(CalcResidue, x0=x0, method='BFGS', options={"gtol": 3E-3})
+        res = opt.minimize(CalcResidue, x0=x0, method='BFGS',
+                           options={"gtol": 3E-3})
         print(res)
         #print("Localização completa:")
         # print(res.get("x"))
