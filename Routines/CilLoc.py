@@ -196,6 +196,9 @@ class CylindricalLocation():
                 Coords.Xcap = R * m.cos(lon)
                 Coords.Ycap = R * m.sin(lon)
                 Coords.Zcap = z
+                print("Coordenada auxiliar tampo X: " + str(Coords.Xcap))
+                print("Coordenada auxiliar tampo Y: " + str(Coords.Ycap))
+                print("Coordenada auxiliar tampo Z: " + str(Coords.Zcap))
             else:
                 print("Modo inválido")
 
@@ -749,8 +752,8 @@ class CylindricalLocation():
 
         res = opt.minimize(CalcResidue, x0=x0, method='BFGS',
                            options={"gtol": 3E-3})
-        print(res)
-        #print("Localização completa:")
+        # print(res) - Resultado da otimização
+        # print("Localização completa:")
         # print(res.get("x"))
 
         return res.get("x")
