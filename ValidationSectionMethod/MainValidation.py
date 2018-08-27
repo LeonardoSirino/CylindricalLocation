@@ -14,6 +14,7 @@ class point():
     def __init__(self, x, s):
         self.x = x
         self.s = s
+        self.a = point.diameter / 2
         self.cap = geo.Geodesic(point.diameter, point.f)
 
     def AuxCoordsGeodesic(self):
@@ -67,11 +68,6 @@ class CalcSection():
     def __init__(self):
         pass
 
-    def reductionFactor:
-        """Redução do diâmetro da elipse em função da sua distância do centro
-        """
-
-
     def centerDistance(self, point1, point2):
         x1 = point1.xcap
         y1 = point1.ycap
@@ -79,6 +75,25 @@ class CalcSection():
         y2 = point2.ycap
         d = np.abs(x2 * y1 - y2 * x1) / np.sqrt((y2 - y1)**2 + (x2 - x1)**2)
         return d
+
+    def reductionFactor(self, point1, point2):
+        """Redução do diâmetro da elipse em função da sua distância do centro
+        """
+        a = point1.a
+        d = self.centerDistance(point1, point2)
+        redF = np.sqrt((a**2 - d**2) / a**2)
+
+        return redF
+
+    def distancePoints(self, point1, point2):
+        point1.AuxCoordsSection()
+        point2.AuxCoordsSection()
+        redF = self.reductionFactor(point1, point2)
+        a = redF * point1.a
+        """Agora é preciso calcular a distância dos pontos para o centor dessa nova
+        elipse, com isso se têm dados suficientes para calcular a distância entre os pontos
+        """
+
 
 
 point.f = 0.5
@@ -89,7 +104,6 @@ x1 = 100
 s1 = 20
 point1 = point(x1, s1)
 point1.AuxCoordsGeodesic()
-point1.AuxCoordsSection()
 
 x2 = 100
 s2 = 60.5
