@@ -6,8 +6,8 @@ xpos = []
 s_sec = []
 s_real = []
 s_plan = []
-for s in np.linspace(1, 50, num=20):
-    for x in np.linspace(10, 314, num=100):
+for s in np.linspace(1, 60, num=15):
+    for x in np.linspace(0, 314, num=100):
 
         xpos.append(x)
 
@@ -28,7 +28,7 @@ for s in np.linspace(1, 50, num=20):
         res = point1.cap.Inverse(lat1=point1.lat, lat2=point2.lat,
                                  lon1=point1.lon, lon2=point2.lon)
         sreal = res.get("s12")
-        s_real.append(sreal / 2)
+        s_real.append(sreal)
 
         calc = CalcSection()
         ssec = calc.distancePoints(point1, point2)

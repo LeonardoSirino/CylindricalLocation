@@ -16,7 +16,7 @@ class point():
         self.x = x
         self.s = s
         self.a = point.diameter / 2
-        self.cap = geo.Geodesic(point.diameter, point.f)
+        self.cap = geo.Geodesic(point.diameter / 2, point.f)
 
     def AuxCoordsGeodesic(self):
         lon = self.x / (point.diameter * m.pi) * 360
@@ -85,7 +85,7 @@ class CalcSection():
             ds = m.sqrt(dR**2 + (z2 - z1)**2)
             s += ds
             z1 = z2
-        
+
         return s
 
     def distancePoints(self, point1, point2):
