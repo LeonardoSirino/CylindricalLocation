@@ -53,7 +53,26 @@ class CalcSection():
     """
 
     def __init__(self):
-        pass
+        self.mode = "reg"
+        """Modos:
+        reg: usa regressão para calcular arco
+        inc: usa método incremental para calcular o arco
+        """
+
+    def RegArc(self, R):
+        m = 0.55241467
+        n = 2.19614952
+        amp = 0.4
+        res = m * (np.log((amp * R + 0.5)/(1 - amp * R - 0.5)) + n)
+
+        return res
+
+    def RegPos(self, s):
+        R = 0
+        """Função para retornar a posição de um ponto do qual se sabe o comprimento do arco
+        Ajustar uma função logística para essa curva
+        """
+        return R
 
     def centerLineDistance(self, point1, point2):
         x1 = point1.xcap
@@ -73,18 +92,26 @@ class CalcSection():
         return redF, d
 
     def elipseArc(self, a, u1, u2):
-        f = point.f
-        s = 0
-        Ri = min([u1, u2])
-        Rf = max([u1, u2])
-        z1 = a * f * m.sqrt(1 - Ri**2 / a**2)
-        dR = (Rf - Ri) / point.divs
-        radius = np.linspace(Ri, Rf, num=point.divs)
-        for R in radius:
-            z2 = a * f * m.sqrt(1 - R**2 / a**2)
-            ds = m.sqrt(dR**2 + (z2 - z1)**2)
-            s += ds
-            z1 = z2
+        if self.mode == "inc":
+            f = point.f
+            s = 0
+            Ri = min([u1, u2])
+            Rf = max([u1, u2])
+            z1 = a * f * m.sqrt(1 - Ri**2 / a**2)
+            dR = (Rf - Ri) / point.divs
+            radius = np.linspace(Ri, Rf, num=point.divs)
+            for R in radius:
+                z2 = a * f * m.sqrt(1 - R**2 / a**2)
+                ds = m.sqrt(dR**2 + (z2 - z1)**2)
+                s += ds
+                z1 = z2
+        
+        elif self.mode == "reg":
+            Ri = min([u1, u2])
+            Rf = max([u1, u2])
+            si = self.RegArc(Ri / a)
+            sf = self.RegArc(Rf / a)
+            s = (sf - si) * a
 
         return s
 
