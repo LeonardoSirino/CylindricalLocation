@@ -17,6 +17,20 @@ class point():
         self.s = s
         self.a = point.diameter / 2
         self.cap = geo.Geodesic(point.diameter / 2, point.f)
+        self.mode = "reg"
+        """Modos:
+        reg: usa regressão para calcular arco
+        inc: usa método incremental para calcular o arco
+        """
+
+    def RegPos(self, s):
+        m = 0.81010676
+        n = 1.49757349
+        amp = 0.3
+
+        R = (np.exp(s/m) - np.exp(n))/(2*amp*(np.exp(s/m) + np.exp(n)))
+
+        return R
 
     def AuxCoordsGeodesic(self):
         lon = self.x / (point.diameter * m.pi) * 360
@@ -25,23 +39,31 @@ class point():
         self.lat = res.get('lat2')
 
     def AuxCoordsSection(self):
-        sf = self.s
-        s = 0
-        a = point.diameter / 2
-        R1 = a
-        f = point.f
-        z1 = 0
-        dR = 2 * a / point.divs
-        while s < sf:
-            R2 = R1 - dR
-            z2 = a * f * m.sqrt(1 - R2**2 / a**2)
-            ds = m.sqrt((R2 - R1)**2 + (z2 - z1)**2)
-            s += ds
-            R1 = R2
-            z1 = z2
-
-        r = R1
         lon = self.x / (point.diameter * m.pi) * 360
+        f = point.f
+
+        if self.mode == "inc":
+            sf = self.s
+            s = 0
+            a = point.diameter / 2
+            R1 = a
+            z1 = 0
+            dR = 2 * a / point.divs
+            while s < sf:
+                R2 = R1 - dR
+                z2 = a * f * m.sqrt(1 - R2**2 / a**2)
+                ds = m.sqrt((R2 - R1)**2 + (z2 - z1)**2)
+                s += ds
+                R1 = R2
+                z1 = z2
+
+            r = R1
+            
+        elif self.mode == "reg":
+            a = point.diameter / 2
+            x = self.RegPos(self.s / a)
+            r = a * abs(x)
+            z1 = a * f * m.sqrt(1 - r**2 / a**2)
 
         self.xcap = r * m.cos(m.radians(lon))
         self.ycap = r * m.sin(m.radians(lon))
@@ -66,13 +88,6 @@ class CalcSection():
         res = m * (np.log((amp * R + 0.5)/(1 - amp * R - 0.5)) + n)
 
         return res
-
-    def RegPos(self, s):
-        R = 0
-        """Função para retornar a posição de um ponto do qual se sabe o comprimento do arco
-        Ajustar uma função logística para essa curva
-        """
-        return R
 
     def centerLineDistance(self, point1, point2):
         x1 = point1.xcap

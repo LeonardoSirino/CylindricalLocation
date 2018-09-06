@@ -11,8 +11,8 @@ erro_section = []
 tt_geo = 0
 tt_section = 0
 tt_plan = 0
-for s in np.linspace(1, 60, num=30):
-    for x in np.linspace(0, 314, num=100):
+for s in np.linspace(10, 50, num=5):
+    for x in np.linspace(1, 314, num=100):
 
         xpos.append(x)
 

@@ -20,7 +20,8 @@ def ArcReg(x, m, n, p):
 def PosReg(s, a, range):
     y = []
     for arc in s:
-        y.append(s)
+        pos = range*(1 / (1 + np.exp(-a*arc)) - 0.5)
+        y.append(pos)
 
     return y
 
@@ -45,18 +46,28 @@ def elipseArc(a, f):
 
     fit, other = curve_fit(ArcReg, pos, arc, bounds=(
         [0.001, 0.1, 0.01], [200., 2000., 0.49]))
-    print(fit)
+    #print(fit)
+    """
     y_reg = ArcReg(pos, fit[0], fit[1], fit[2])
     residue = []
     for (real, adjust) in zip(arc, y_reg):
         residue.append(real - adjust)
 
-    """
-    plt.plot(pos, residue)
-
-    """
     plt.plot(pos, arc)
     plt.plot(pos, y_reg)
+    plt.legend(["Real", "Regressão"])
+    plt.show()
+    """
+
+    fit2, other2 = curve_fit(PosReg, arc, pos, bounds=(
+        [3, 2], [200., 2.1]))
+
+    print(fit2)
+
+    y_reg2 = PosReg(pos, fit2[0], fit2[1],)
+
+    plt.plot(arc, pos)
+    plt.plot(arc, y_reg2)
     plt.legend(["Real", "Regressão"])
     plt.show()
 
