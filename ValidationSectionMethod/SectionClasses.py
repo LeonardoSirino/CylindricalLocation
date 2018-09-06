@@ -60,9 +60,9 @@ class CalcSection():
         """
 
     def RegArc(self, R):
-        m = 0.55241467
-        n = 2.19614952
-        amp = 0.4
+        m = 0.81010676
+        n = 1.49757349
+        amp = 0.3
         res = m * (np.log((amp * R + 0.5)/(1 - amp * R - 0.5)) + n)
 
         return res
