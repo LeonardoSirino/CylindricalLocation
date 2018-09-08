@@ -28,7 +28,8 @@ class point():
         n = 1.49757349
         amp = 0.3
 
-        R = (np.exp(s/m) - np.exp(n))/(2*amp*(np.exp(s/m) + np.exp(n)))
+        R = (np.exp(s / m) - np.exp(n)) / \
+            (2 * amp * (np.exp(s / m) + np.exp(n)))
 
         return R
 
@@ -41,11 +42,11 @@ class point():
     def AuxCoordsSection(self):
         lon = self.x / (point.diameter * m.pi) * 360
         f = point.f
+        a = point.diameter / 2
 
         if self.mode == "inc":
             sf = self.s
             s = 0
-            a = point.diameter / 2
             R1 = a
             z1 = 0
             dR = 2 * a / point.divs
@@ -58,12 +59,15 @@ class point():
                 z1 = z2
 
             r = R1
-            
+
         elif self.mode == "reg":
-            a = point.diameter / 2
-            x = self.RegPos(self.s / a)
-            r = a * abs(x)
-            z1 = a * f * m.sqrt(1 - r**2 / a**2)
+            R = self.RegPos(self.s / a)
+            r = a * abs(R)
+            try:
+                z1 = a * f * m.sqrt(1 - r**2 / a**2)
+            except ValueError:
+                z1 = 0
+                r = a
 
         self.xcap = r * m.cos(m.radians(lon))
         self.ycap = r * m.sin(m.radians(lon))
@@ -85,7 +89,7 @@ class CalcSection():
         m = 0.81010676
         n = 1.49757349
         amp = 0.3
-        res = m * (np.log((amp * R + 0.5)/(1 - amp * R - 0.5)) + n)
+        res = m * (np.log((amp * R + 0.5) / (1 - amp * R - 0.5)) + n)
 
         return res
 
@@ -120,7 +124,7 @@ class CalcSection():
                 ds = m.sqrt(dR**2 + (z2 - z1)**2)
                 s += ds
                 z1 = z2
-        
+
         elif self.mode == "reg":
             Ri = min([u1, u2])
             Rf = max([u1, u2])

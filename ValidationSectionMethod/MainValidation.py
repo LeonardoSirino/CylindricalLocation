@@ -11,7 +11,7 @@ erro_section = []
 tt_geo = 0
 tt_section = 0
 tt_plan = 0
-for s in np.linspace(10, 50, num=5):
+for s in np.linspace(0, 5, num=5):
     for x in np.linspace(1, 314, num=100):
 
         xpos.append(x)
@@ -62,8 +62,8 @@ for s in np.linspace(10, 50, num=5):
 
         s_plan.append(dplan)
 
-        erro_plan.append(sreal - dplan)
-        erro_section.append(sreal - ssec)
+        erro_plan.append(abs(sreal - dplan))
+        erro_section.append(abs(sreal - ssec))
 
     s_plan.append(m.nan)
     s_real.append(m.nan)
