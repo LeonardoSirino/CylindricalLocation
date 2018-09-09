@@ -11,7 +11,7 @@ erro_section = []
 tt_geo = 0
 tt_section = 0
 tt_plan = 0
-arcs = np.linspace(0, 20, num=20)
+arcs = np.linspace(0, 60.5, num=20)
 max_errors = []
 for s in arcs:
     max_error = 0
