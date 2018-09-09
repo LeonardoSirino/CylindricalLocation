@@ -11,14 +11,17 @@ erro_section = []
 tt_geo = 0
 tt_section = 0
 tt_plan = 0
-for s in np.linspace(0, 60.5, num=20):
+arcs = np.linspace(0, 20, num=20)
+max_errors = []
+for s in arcs:
+    max_error = 0
     for x in np.linspace(1, 314, num=500):
 
         xpos.append(x)
 
         point.f = 0.5
         point.diameter = 100
-        point.divs = 100
+        point.divs = 500
 
         t0 = time.time()
 
@@ -32,14 +35,12 @@ for s in np.linspace(0, 60.5, num=20):
         point2 = point(x2, s2)
         point2.AuxCoordsGeodesic()
 
-        
-     
         res = point1.cap.Inverse(lat1=point1.lat, lat2=point2.lat,
                                  lon1=point1.lon, lon2=point2.lon)
         sreal = res.get("s12")
 
         t1 = time.time()
-        tt_geo += t1-t0
+        tt_geo += t1 - t0
 
         s_real.append(sreal)
 
@@ -49,7 +50,7 @@ for s in np.linspace(0, 60.5, num=20):
         ssec = calc.distancePoints(point1, point2)
 
         t1 = time.time()
-        tt_section += t1-t0
+        tt_section += t1 - t0
 
         s_sec.append(ssec)
 
@@ -60,13 +61,17 @@ for s in np.linspace(0, 60.5, num=20):
         dplan = min(dplan1, dplan2)
 
         t1 = time.time()
-        tt_plan += t1-t0
+        tt_plan += t1 - t0
 
         s_plan.append(dplan)
 
         erro_plan.append(abs(sreal - dplan))
         erro_section.append(abs(sreal - ssec))
 
+        if abs(sreal - ssec) > abs(max_error):
+            max_error = sreal - ssec
+
+    max_errors.append(max_error)
     s_plan.append(m.nan)
     s_real.append(m.nan)
     s_sec.append(m.nan)
@@ -80,6 +85,7 @@ print("Tempo total seção:")
 print(tt_section)
 print("Tempo total planificado:")
 print(tt_plan)
+
 plt.plot(xpos, s_real, xpos, s_sec, xpos, s_plan)
 plt.legend(['real', 'section', 'plan'])
 plt.title("Distâncias")
@@ -87,4 +93,11 @@ plt.show()
 plt.plot(xpos, erro_plan, xpos, erro_section)
 plt.legend(['erro planificado', 'erro section'])
 plt.title("Erros")
+plt.show()
+
+plt.plot(arcs, max_errors)
+plt.legend(['erro máximo'])
+plt.title("Erro máximo")
+plt.xlabel("Arco até o corpo [mm]")
+plt.ylabel("Erro [mm]")
 plt.show()

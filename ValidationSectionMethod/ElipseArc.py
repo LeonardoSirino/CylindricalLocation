@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 
-def ArcReg(x, m, n):
+def ArcReg(x, m, n, amp):
     y = []
-    amp = 0.3
+    #amp = 0.3
     for pos in x:
         res = m * (np.log((amp * pos + 0.5) / (1 - amp * pos - 0.5)) + n)
         if res < 0:
@@ -17,9 +17,9 @@ def ArcReg(x, m, n):
     return y
 
 
-def PosReg(arc, m, n):
+def PosReg(arc, m, n, amp):
     y = []
-    amp = 0.3
+    #amp = 0.3
     for s in arc:
         R = (np.exp(s / m) - np.exp(n)) / \
             (2 * amp * (np.exp(s / m) + np.exp(n)))
@@ -29,7 +29,7 @@ def PosReg(arc, m, n):
 
 
 def elipseArc(a, f):
-    divs = 500
+    divs = 1000000
     s = 0
     Ri = -a
     Rf = a
@@ -46,36 +46,58 @@ def elipseArc(a, f):
 
     pos = np.linspace(-1, 1, num=divs)
 
-    fit, other = curve_fit(ArcReg, pos, arc, bounds=(
-        [0.001, 0.1], [200., 2000.]))
-    print(fit)
     """
+    fit, other = curve_fit(ArcReg, pos, arc, bounds=(
+        [0.001, 0.1, 0.1], [200., 2000., 0.5]))
+
     y_reg = ArcReg(pos, fit[0], fit[1], fit[2])
+    """
+    fit = np.polyfit(pos, arc, order + 2)
+    print("Regressão do arco em função da posição")
+    print(fit)
+    y_reg = np.polyval(fit, pos)
+
     residue = []
     for (real, adjust) in zip(arc, y_reg):
-        residue.append(real - adjust)
+        residue.append(abs(real - adjust))
+
+    print("Desvio máximo: " + str(np.max(residue)))
 
     plt.plot(pos, arc)
     plt.plot(pos, y_reg)
+    plt.title("Regressão do arco")
     plt.legend(["Real", "Regressão"])
     plt.show()
+
+    """ 
+    fit2, other2 = curve_fit(PosReg, arc, pos, bounds=(
+        [0.01, 0.01, 0.1], [200., 20, 0.5]))
+
+    
+    y_reg2 = PosReg(arc, fit2[0], fit2[1], fit2[2])
+
     """
 
-    fit2, other2 = curve_fit(PosReg, arc, pos, bounds=(
-        [0.01, 0.01], [200., 20]))
-
+    fit2 = np.polyfit(arc, pos, order)
+    y_reg2 = np.polyval(fit2, arc)
+    
+    print("Regressão da posição em função do arco")
     print(fit2)
+    residue2 = []
+    for (real, adjust) in zip(pos, y_reg2):
+        residue2.append(abs(real - adjust))
 
-    y_reg2 = PosReg(arc, fit2[0], fit2[1])
+    print("Desvio máximo: " + str(np.max(residue2)))
 
     plt.plot(arc, pos)
     plt.plot(arc, y_reg2)
+    plt.title("Regressão da posição")
     plt.legend(["Real", "Regressão"])
     plt.show()
 
     return s, fit[0], fit[1], fit[2]
 
-
+order = 7
 s, v, n, p = elipseArc(100, 0.5)
 
 """

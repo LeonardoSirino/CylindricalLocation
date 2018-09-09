@@ -24,12 +24,16 @@ class point():
         """
 
     def RegPos(self, s):
-        m = 0.80784021
-        n = 1.50177523
-        amp = 0.3
+        """ Regressão da função logística
+        m = 0.84322062
+        n = 1.43623984
+        amp = 0.28950002
 
-        R = (np.exp(s / m) - np.exp(n)) / \
-            (2 * amp * (np.exp(s / m) + np.exp(n)))
+        R = (np.exp(s / m) - np.exp(n)) / (2 * amp * (np.exp(s / m) + np.exp(n)))
+        """
+        pol = [-0.04520616,  0.38323073, -1.36785798,  2.66208137, -3.10204898,  2.24771868,
+               0.01275433, -1.00151578]
+        R = np.polyval(pol, s)
 
         return R
 
@@ -86,12 +90,18 @@ class CalcSection():
         """
 
     def RegArc(self, R):
-        m = 0.80736007
-        n = 1.50266833
-        amp = 0.3
-        res = m * (np.log((amp * R + 0.5) / (1 - amp * R - 0.5)) + n)
+        """
+        m = 0.82444066
+        n = 1.46895599
+        amp = 0.29505693
+        s = m * (np.log((amp * R + 0.5) / (1 - amp * R - 0.5)) + n)
+        """
+        pol = [9.94406631e-01, -5.42331127e-13, -1.67276958e+00,  9.30333908e-13,
+               9.92271096e-01, -4.52365676e-13, -1.60763495e-01,  8.69627507e-14,
+               1.01106572e+00,  1.21105713e+00]
+        s = np.polyval(pol, R)
 
-        return res
+        return s
 
     def centerLineDistance(self, point1, point2):
         x1 = point1.xcap
