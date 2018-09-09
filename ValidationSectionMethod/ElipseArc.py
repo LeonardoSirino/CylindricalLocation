@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 
-def ArcReg(x, m, n, p):
+def ArcReg(x, m, n):
     y = []
-    amp = p
+    amp = 0.3
     for pos in x:
         res = m * (np.log((amp * pos + 0.5) / (1 - amp * pos - 0.5)) + n)
         if res < 0:
@@ -17,11 +17,13 @@ def ArcReg(x, m, n, p):
     return y
 
 
-def PosReg(s, a, range):
+def PosReg(arc, m, n):
     y = []
-    for arc in s:
-        pos = range*(1 / (1 + np.exp(-a*arc)) - 0.5)
-        y.append(pos)
+    amp = 0.3
+    for s in arc:
+        R = (np.exp(s / m) - np.exp(n)) / \
+            (2 * amp * (np.exp(s / m) + np.exp(n)))
+        y.append(R)
 
     return y
 
@@ -45,8 +47,8 @@ def elipseArc(a, f):
     pos = np.linspace(-1, 1, num=divs)
 
     fit, other = curve_fit(ArcReg, pos, arc, bounds=(
-        [0.001, 0.1, 0.01], [200., 2000., 0.49]))
-    #print(fit)
+        [0.001, 0.1], [200., 2000.]))
+    print(fit)
     """
     y_reg = ArcReg(pos, fit[0], fit[1], fit[2])
     residue = []
@@ -60,11 +62,11 @@ def elipseArc(a, f):
     """
 
     fit2, other2 = curve_fit(PosReg, arc, pos, bounds=(
-        [3, 2], [200., 2.1]))
+        [0.01, 0.01], [200., 20]))
 
     print(fit2)
 
-    y_reg2 = PosReg(pos, fit2[0], fit2[1],)
+    y_reg2 = PosReg(arc, fit2[0], fit2[1])
 
     plt.plot(arc, pos)
     plt.plot(arc, y_reg2)

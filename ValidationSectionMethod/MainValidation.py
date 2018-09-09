@@ -11,8 +11,8 @@ erro_section = []
 tt_geo = 0
 tt_section = 0
 tt_plan = 0
-for s in np.linspace(0, 5, num=5):
-    for x in np.linspace(1, 314, num=100):
+for s in np.linspace(0, 60.5, num=20):
+    for x in np.linspace(1, 314, num=500):
 
         xpos.append(x)
 
@@ -31,6 +31,8 @@ for s in np.linspace(0, 5, num=5):
         s2 = s
         point2 = point(x2, s2)
         point2.AuxCoordsGeodesic()
+
+        
      
         res = point1.cap.Inverse(lat1=point1.lat, lat2=point2.lat,
                                  lon1=point1.lon, lon2=point2.lon)

@@ -24,8 +24,8 @@ class point():
         """
 
     def RegPos(self, s):
-        m = 0.81010676
-        n = 1.49757349
+        m = 0.80784021
+        n = 1.50177523
         amp = 0.3
 
         R = (np.exp(s / m) - np.exp(n)) / \
@@ -86,8 +86,8 @@ class CalcSection():
         """
 
     def RegArc(self, R):
-        m = 0.81010676
-        n = 1.49757349
+        m = 0.80736007
+        n = 1.50266833
         amp = 0.3
         res = m * (np.log((amp * R + 0.5) / (1 - amp * R - 0.5)) + n)
 
