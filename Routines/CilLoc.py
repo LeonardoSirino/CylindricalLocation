@@ -75,43 +75,23 @@ class CylindricalLocation():
         self.__tempSensorList = None
         self.__tempSensorListHClone = None
         self.CalcMode = 'geodesic'
-        """
+        """Modos:
         geodesic - usando biblioteca do Python - GeoplotLib
         section - usando seccionamento do tampo
         """
-        self.__ellipseDivs = 100
+        self.SectionMode = 'reg'
+        """Modos:
+        reg: usa regressão para calcular arco
+        inc: usa método incremental para calcular o arco
+        """
+        self.__ellipseDivs = 500
+        self.__DivsTolerance = 100
 
     def setCalcMode(self, mode):
         self.CalcMode = mode
 
-    def __ellipsePosition(self, a, f, s0):
-        N = 500
-        s = 0
-        R1 = a
-        z1 = 0
-        dR = 2 * a / self.__ellipseDivs
-        while s < s0:
-            R2 = R1 - dR
-            z2 = a * f * m.sqrt(1 - R2**2 / a**2)
-            ds = m.sqrt((R2 - R1)**2 + (z2 - z1)**2)
-            s += ds
-            R1 = R2
-            z1 = z2
-
-        return (a - R1, z1)
-
-    def __ellipseArc(self, Ri, Rf, a, f):
-        s = 0
-        z1 = a * f * m.sqrt(1 - Ri**2 / a**2)
-        dR = (Rf - Ri) / self.__ellipseDivs
-        radius = np.linspace(Ri, Rf, num=self.__ellipseDivs)
-        for R in radius:
-            z2 = a * f * m.sqrt(1 - R**2 / a**2)
-            ds = m.sqrt(dR**2 + (z2 - z1)**2)
-            s += ds
-            z1 = z2
-
-        return s
+    def setSectionMode(self, mode):
+        self.SectionMode = mode
 
     def set_f(self, f):
         self.f = f
@@ -121,6 +101,15 @@ class CylindricalLocation():
         self.__DrawVessel()
 
     def set_semiPerimeter(self, SemiPerimeter):
+        """Definição do valor do semiperímetro e calculo do valor de f correspondente
+
+        Arguments:
+            SemiPerimeter {[float]} -- [medida do semiperímetro]
+
+        Returns:
+            f[float] -- [razão de achatamento]
+        """
+
         self.SemiPerimeter = SemiPerimeter
 
         def CalcSemiPerimeter(f):
@@ -159,6 +148,100 @@ class CylindricalLocation():
         ypath = [y0, y0, y0 + height, y0 + height, y0]
         return {"xpath": xpath, "ypath": ypath}
 
+    def __sectionPos(self, s):
+        if self.SectionMode == "reg":
+            a = self.diameter / 2
+            f = self.f
+            s = s / a
+            pol = [-0.04520616,  0.38323073, -1.36785798,  2.66208137, -3.10204898,  2.24771868,
+                   0.01275433, -1.00151578]
+            R = np.polyval(pol, s) * a
+            try:
+                z = a * f * m.sqrt(1 - R**2 / a**2)
+            except ValueError:
+                if abs(a - abs(R)) < (a / self.__DivsTolerance):
+                    R = a
+                    z = 0
+                else:
+                    print("SectionPos")
+                    print("a: " + str(a))
+                    print("s: " + str(s))
+                    print("R: " + str(R))
+                    z = np.nan
+                    R = np.nan
+        elif self.SectionMode == "inc":
+            sf = s
+            f = self.f
+            a = self.diameter / 2
+            R1 = a
+            s = 0
+            z1 = 0
+            dR = 2 * a / self.__ellipseDivs
+            while s < sf:
+                R2 = R1 - dR
+                z2 = a * f * m.sqrt(1 - R2**2 / a**2)
+                ds = m.sqrt((R2 - R1)**2 + (z2 - z1)**2)
+                s += ds
+                R1 = R2
+                z1 = z2
+
+            R = R1
+            z = z1
+        else:
+            print("Modo inexistente")
+
+        return (R, z)
+
+    def __sectionArc(self, a, R1, R2):
+        Ri = min([R1, R2])
+        Rf = max([R1, R2])
+        f = self.f
+
+        if self.SectionMode == "reg":
+            Ri = Ri / a
+            Rf = Rf / a
+            pol = [9.94406631e-01, -5.42331127e-13, -1.67276958e+00,  9.30333908e-13,
+                   9.92271096e-01, -4.52365676e-13, -1.60763495e-01,  8.69627507e-14,
+                   1.01106572e+00,  1.21105713e+00]
+            si = np.polyval(pol, Ri) * a
+            sf = np.polyval(pol, Rf) * a
+            s = sf - si
+        elif self.SectionMode == "inc":
+            s = 0
+            z1 = a * f * m.sqrt(1 - Ri**2 / a**2)
+            dR = (Rf - Ri) / self.__ellipseDivs
+            radius = np.linspace(Ri, Rf, num=self.__ellipseDivs)
+            for R in radius:
+                z2 = a * f * m.sqrt(1 - R**2 / a**2)
+                ds = m.sqrt(dR**2 + (z2 - z1)**2)
+                s += ds
+                z1 = z2
+        else:
+            print("Modo inexistente")
+
+        return s
+
+    def __centerLineDistance(self, point1, point2):
+        x1 = point1.Xcap
+        y1 = point1.Ycap
+        x2 = point2.Xcap
+        y2 = point2.Ycap
+        d = np.abs(x2 * y1 - y2 * x1) / np.sqrt((y2 - y1)**2 + (x2 - x1)**2)
+        return d
+
+    def __reductionFactor(self, point1, point2):
+        """Redução do diâmetro da elipse em função da sua distância do centro
+        """
+        a = self.diameter / 2
+        d = self.__centerLineDistance(point1, point2)
+        
+        try:
+            redF = np.sqrt((a**2 - d**2) / a**2)
+        except RuntimeWarning:
+            print("d: " + str(d))
+
+        return redF, d
+
     def __AuxCoords(self, Coords):
         """
         Função para calcular as coordenadas auxliares (latitude e longitude) quando a coordenada estiver no tampo
@@ -191,14 +274,17 @@ class CylindricalLocation():
                     s = abs(Coords.Ycord)
                     Coords.SetCap("inf")
 
-                (R, z) = self.__ellipsePosition(self.diameter / 2, self.f, s)
+                (R, z) = self.__sectionPos(s)
+                R = abs(R)
 
                 Coords.Xcap = R * m.cos(lon)
                 Coords.Ycap = R * m.sin(lon)
                 Coords.Zcap = z
+                """
                 print("Coordenada auxiliar tampo X: " + str(Coords.Xcap))
                 print("Coordenada auxiliar tampo Y: " + str(Coords.Ycap))
                 print("Coordenada auxiliar tampo Z: " + str(Coords.Zcap))
+                """
             else:
                 print("Modo inválido")
 
@@ -271,13 +357,7 @@ class CylindricalLocation():
         """
         if P1.OnCap and P2.OnCap:
             if P1.Cap == P2.Cap:  # Dois pontos no mesmo tampo
-                res = self.cap.Inverse(
-                    lat1=P1.Lat, lat2=P2.Lat, lon1=P1.Lon, lon2=P2.Lon)
-                dist = res.get("s12")
-                if self.__GenPlot:
-                    self.__PlotonCap(lat1=P1.Lat, lat2=P2.Lat,
-                                     lon1=P1.Lon, lon2=P2.Lon, cap=P1.Cap)
-
+                dist = self.__DistSameCap(P1, P2)
             else:  # Pontos em tampos opostos
                 if P1.Cap == "sup":
                     Psup = P1
@@ -295,6 +375,57 @@ class CylindricalLocation():
             if self.__GenPlot:
                 self.__PlotonWall(x1=P1.Xcord, x2=P2.Xcord,
                                   y1=P1.Ycord, y2=P2.Ycord)
+
+        return dist
+
+    def __DistSameCap(self, P1, P2):
+        if self.CalcMode == 'geodesic':
+            res = self.cap.Inverse(
+                lat1=P1.Lat, lat2=P2.Lat, lon1=P1.Lon, lon2=P2.Lon)
+            dist = res.get("s12")
+            if self.__GenPlot:
+                self.__PlotonCap(lat1=P1.Lat, lat2=P2.Lat,
+                                 lon1=P1.Lon, lon2=P2.Lon, cap=P1.Cap)
+        elif self.CalcMode == 'section':
+            redF, d = self.__reductionFactor(P1, P2)
+            r1q = P1.Xcap**2 + P1.Ycap**2
+            try:
+                u1 = m.sqrt(r1q - d**2)
+            except ValueError:
+                if abs(r1q - d) < self.diameter / self.__DivsTolerance:
+                    u1 = 0
+                else:
+                    u1 = np.nan
+
+            r2q = P2.Xcap**2 + P2.Ycap**2
+            try:
+                u2 = m.sqrt(r2q - d**2)
+            except ValueError:
+                if abs(r2q - d) < self.diameter / self.__DivsTolerance:
+                    u2 = 0
+                else:
+                    u2 = np.nan
+
+            v1c = np.array([-P1.Xcap, -P1.Ycap])
+            v2c = np.array([-P2.Xcap, -P2.Ycap])
+            v12 = np.array([P2.Xcap - P1.Xcap, P2.Ycap - P1.Ycap])
+
+            theta1 = np.arccos(np.dot(v1c, v12) /
+                               (np.linalg.norm(v1c) * np.linalg.norm(v12)))
+
+            theta2 = np.arccos(np.dot(v2c, v12) /
+                               (np.linalg.norm(v2c) * np.linalg.norm(v12)))
+
+            if theta1 > m.pi / 2:
+                u1 = -u1
+
+            if theta2 > m.pi / 2:
+                u2 = -u2
+
+            a = redF * self.diameter / 2
+            dist = self.__sectionArc(a, u1, u2)
+        else:
+            print("Modo inexistente")
 
         return dist
 
@@ -724,7 +855,7 @@ class CylindricalLocation():
             return residue
 
         res = opt.minimize(CalcResidue, x0=[400, 500], method='BFGS')
-        #print("Localização simplificada:")
+        # print("Localização simplificada:")
         # print(res.get("x"))
 
         return res.get("x")
@@ -750,10 +881,12 @@ class CylindricalLocation():
 
         x0 = self.simpleLocation(TimesToSensors)
 
-        res = opt.minimize(CalcResidue, x0=x0, method='BFGS',
-                           options={"gtol": 3E-3})
-        # print(res) - Resultado da otimização
-        # print("Localização completa:")
-        # print(res.get("x"))
+        res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 3E-4}, bounds=[
+                           (0, self.diameter * m.pi), (-self.SemiPerimeter, self.height + self.SemiPerimeter)])
+        """
+        res = opt.differential_evolution(CalcResidue, bounds = [(
+            0, self.diameter * m.pi), (-self.SemiPerimeter, self.height + self.SemiPerimeter)])
+        """
+        print(res)  # - Resultado da otimização
 
         return res.get("x")

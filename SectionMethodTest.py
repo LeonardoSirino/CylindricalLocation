@@ -12,4 +12,4 @@ Locate.setCalcMode("section")
 Locate.set_semiPerimeter(semiperimeter)
 Locate.SetVelocity(5)
 
-Locate.AddSensor(500, -240)
+Locate.AddSensor(500, -100)
