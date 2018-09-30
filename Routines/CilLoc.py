@@ -222,11 +222,18 @@ class CylindricalLocation():
         return s
 
     def __centerLineDistance(self, point1, point2):
+        a = self.diameter / 2
+        N = self.__DivsTolerance
         x1 = point1.Xcap
         y1 = point1.Ycap
         x2 = point2.Xcap
         y2 = point2.Ycap
-        d = np.abs(x2 * y1 - y2 * x1) / np.sqrt((y2 - y1)**2 + (x2 - x1)**2)
+        if abs(x1 - x2) < a / N and abs(y1 - y2) < a / N:
+            # Evita erros no cálculo da distância até o centro quando P1 e P2 estão muito próximos
+            d = a
+        else:
+            d = np.abs(x2 * y1 - y2 * x1) / \
+                np.sqrt((y2 - y1)**2 + (x2 - x1)**2)
         return d
 
     def __reductionFactor(self, point1, point2):
@@ -234,11 +241,10 @@ class CylindricalLocation():
         """
         a = self.diameter / 2
         d = self.__centerLineDistance(point1, point2)
-        
-        try:
-            redF = np.sqrt((a**2 - d**2) / a**2)
-        except RuntimeWarning:
-            print("d: " + str(d))
+        redF = np.sqrt((a**2 - d**2) / a**2)
+
+        if np.isnan(redF) or a == d:
+            redF = 0
 
         return redF, d
 
@@ -388,42 +394,45 @@ class CylindricalLocation():
                                  lon1=P1.Lon, lon2=P2.Lon, cap=P1.Cap)
         elif self.CalcMode == 'section':
             redF, d = self.__reductionFactor(P1, P2)
-            r1q = P1.Xcap**2 + P1.Ycap**2
-            try:
-                u1 = m.sqrt(r1q - d**2)
-            except ValueError:
-                if abs(r1q - d) < self.diameter / self.__DivsTolerance:
-                    u1 = 0
-                else:
-                    u1 = np.nan
+            if redF != 0:
+                r1q = P1.Xcap**2 + P1.Ycap**2
+                try:
+                    u1 = m.sqrt(r1q - d**2)
+                except ValueError:
+                    if abs(r1q - d) < self.diameter / self.__DivsTolerance:
+                        u1 = 0
+                    else:
+                        u1 = np.nan
 
-            r2q = P2.Xcap**2 + P2.Ycap**2
-            try:
-                u2 = m.sqrt(r2q - d**2)
-            except ValueError:
-                if abs(r2q - d) < self.diameter / self.__DivsTolerance:
-                    u2 = 0
-                else:
-                    u2 = np.nan
+                r2q = P2.Xcap**2 + P2.Ycap**2
+                try:
+                    u2 = m.sqrt(r2q - d**2)
+                except ValueError:
+                    if abs(r2q - d) < self.diameter / self.__DivsTolerance:
+                        u2 = 0
+                    else:
+                        u2 = np.nan
 
-            v1c = np.array([-P1.Xcap, -P1.Ycap])
-            v2c = np.array([-P2.Xcap, -P2.Ycap])
-            v12 = np.array([P2.Xcap - P1.Xcap, P2.Ycap - P1.Ycap])
+                v1c = np.array([-P1.Xcap, -P1.Ycap])
+                v2c = np.array([-P2.Xcap, -P2.Ycap])
+                v12 = np.array([P2.Xcap - P1.Xcap, P2.Ycap - P1.Ycap])
 
-            theta1 = np.arccos(np.dot(v1c, v12) /
-                               (np.linalg.norm(v1c) * np.linalg.norm(v12)))
+                theta1 = np.arccos(np.dot(v1c, v12) /
+                                   (np.linalg.norm(v1c) * np.linalg.norm(v12)))
 
-            theta2 = np.arccos(np.dot(v2c, v12) /
-                               (np.linalg.norm(v2c) * np.linalg.norm(v12)))
+                theta2 = np.arccos(np.dot(v2c, v12) /
+                                   (np.linalg.norm(v2c) * np.linalg.norm(v12)))
 
-            if theta1 > m.pi / 2:
-                u1 = -u1
+                if theta1 > m.pi / 2:
+                    u1 = -u1
 
-            if theta2 > m.pi / 2:
-                u2 = -u2
+                if theta2 > m.pi / 2:
+                    u2 = -u2
 
-            a = redF * self.diameter / 2
-            dist = self.__sectionArc(a, u1, u2)
+                a = redF * self.diameter / 2
+                dist = self.__sectionArc(a, u1, u2)
+            else:
+                dist = 0
         else:
             print("Modo inexistente")
 
@@ -881,12 +890,13 @@ class CylindricalLocation():
 
         x0 = self.simpleLocation(TimesToSensors)
 
-        res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 3E-4}, bounds=[
-                           (0, self.diameter * m.pi), (-self.SemiPerimeter, self.height + self.SemiPerimeter)])
         """
-        res = opt.differential_evolution(CalcResidue, bounds = [(
-            0, self.diameter * m.pi), (-self.SemiPerimeter, self.height + self.SemiPerimeter)])
+        res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 3E-3}, bounds=[
+                           (-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi), (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))])
         """
+        res = opt.differential_evolution(CalcResidue, bounds=[
+                                         (-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi), (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))])
+
         print(res)  # - Resultado da otimização
 
         return res.get("x")
