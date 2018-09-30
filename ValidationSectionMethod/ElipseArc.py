@@ -66,6 +66,8 @@ def elipseArc(a, f):
     plt.plot(pos, arc)
     plt.plot(pos, y_reg)
     plt.title("Regressão do arco")
+    plt.ylabel("s / a")
+    plt.xlabel("R / a")
     plt.legend(["Real", "Regressão"])
     plt.show()
 
@@ -92,6 +94,8 @@ def elipseArc(a, f):
     plt.plot(arc, pos)
     plt.plot(arc, y_reg2)
     plt.title("Regressão da posição")
+    plt.xlabel("s / a")
+    plt.ylabel("R / a")
     plt.legend(["Real", "Regressão"])
     plt.show()
 
