@@ -137,6 +137,13 @@ class CylindricalLocation():
         for sensor in self.__SensorListHClone:
             print(sensor)
 
+    def __getSensorbyID(self, ID):
+        for sensor in self.SensorList:
+            if sensor.ID == ID:
+                return sensor
+
+        return None
+
     def __DrawVessel(self):
         self.__VesselXPath = self.__PlotRectangle(0, 0, self.diameter * m.pi, -self.SemiPerimeter).get("xpath") + self.__PlotRectangle(
             0, 0, self.diameter * m.pi, self.height).get("xpath") + self.__PlotRectangle(0, self.height, self.diameter * m.pi, self.SemiPerimeter).get("xpath")
@@ -844,7 +851,39 @@ class CylindricalLocation():
 
         return OrderedMembers
 
+    def __orderByTime(self, TimesToSensors):
+        dtype = [("ID", int), ("time", float)]
+        NPtimes = np.array(TimesToSensors, dtype=dtype)
+        NPtimes = np.sort(NPtimes, order="time")
+
+        return NPtimes
+
     def simpleLocation(self, TimesToSensors):
+        temp = self.__orderByTime(TimesToSensors)
+        times = []
+        for element in temp[:3]:
+            (ID, time) = element
+            times.append(time)
+
+        weights = np.array(times / np.max(times))
+        weights += 1
+
+        x = 0
+        y = 0
+        j = 0
+        sum = 0
+        for element in temp[:3]:
+            (ID, time) = element
+            sensor = self.__getSensorbyID(ID)
+            x += sensor.Xcord / weights[j]
+            y += sensor.Ycord / weights[j]
+            sum += 1 / weights[j]
+            j += 1
+            
+        x0 = [x / sum, y / sum]
+        print("x0")
+        print(x0)
+
         data = self.__orderMembers(TimesToSensors)
         IDs = []
         MeasTimes = []
@@ -863,7 +902,7 @@ class CylindricalLocation():
             residue = np.sqrt(np.sum(((tcalc - MeasTimes) * normalizer)**2))
             return residue
 
-        res = opt.minimize(CalcResidue, x0=[400, 500], method='BFGS')
+        res = opt.minimize(CalcResidue, x0, method='BFGS')
         # print("Localização simplificada:")
         # print(res.get("x"))
 
@@ -890,12 +929,12 @@ class CylindricalLocation():
 
         x0 = self.simpleLocation(TimesToSensors)
 
-        """
         res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 3E-3}, bounds=[
                            (-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi), (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))])
         """
         res = opt.differential_evolution(CalcResidue, bounds=[
                                          (-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi), (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))])
+        """
 
         print(res)  # - Resultado da otimização
 
