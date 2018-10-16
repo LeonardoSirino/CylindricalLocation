@@ -89,9 +89,17 @@ class CylindricalLocation():
 
     def setCalcMode(self, mode):
         self.CalcMode = mode
+        """Modos:
+        geodesic - usando biblioteca do Python - GeoplotLib
+        section - usando seccionamento do tampo
+        """
 
     def setSectionMode(self, mode):
         self.SectionMode = mode
+        """Modos:
+        reg: usa regressão para calcular arco
+        inc: usa método incremental para calcular o arco
+        """
 
     def set_f(self, f):
         self.f = f
@@ -304,6 +312,13 @@ class CylindricalLocation():
             Coords.SetOnCap(True)
         else:
             Coords.SetOnCap(False)
+
+    def __AllSensorsAuxCoords(self):
+        for sensor in self.SensorList:
+            self.__AuxCoords(sensor)
+
+        for sensor in self.__SensorListHClone:
+            self.__AuxCoords(sensor)
 
     def __PlotonCap(self, lat1, lat2, lon1, lon2, cap):
         if self.CalcMode == 'geodesic':
@@ -826,11 +841,38 @@ class CylindricalLocation():
         self.__returnSensors()
         return distances
 
-    def returnDeltaT(self, x, y, IDs, exact):
-        if exact:
+    def returnDeltaT(self, x, y, IDs, mode):
+        auxMode = self.CalcMode
+        auxSection = self.SectionMode
+
+        if mode == 'geodesic':
+            self.setCalcMode('geodesic')
+            self.__AllSensorsAuxCoords()
+            distances = self.calcAllDist(x, y, False, IDs)
+        elif mode == 'reg':
+            self.setCalcMode('section')
+            self.setSectionMode('reg')
+            self.__AllSensorsAuxCoords()
+            distances = self.calcAllDist(x, y, False, IDs)
+        elif mode == 'inc':
+            self.setCalcMode('section')
+            self.setSectionMode('inc')
+            self.__AllSensorsAuxCoords()
+            distances = self.calcAllDist(x, y, False, IDs)
+        elif mode == 'simple':
+            "Modo simplificado - planificado"
+            distances = self.__SimplifiedDistances(x, y, IDs)
+        elif mode == 'original':
+            "Usar modo atual"
             distances = self.calcAllDist(x, y, False, IDs)
         else:
-            distances = self.__SimplifiedDistances(x, y, IDs)
+            print("Modo inexistente")
+
+        if mode != 'original' and mode != 'simple':
+            self.setCalcMode(auxMode)
+            self.setSectionMode(auxSection)
+            self.__AllSensorsAuxCoords()
+
         NPdist = np.array(distances)
         NPdist += -np.min(NPdist)
         times = NPdist / self.veloc
@@ -858,7 +900,7 @@ class CylindricalLocation():
 
         return NPtimes
 
-    def simpleLocation(self, TimesToSensors):
+    def __InitialKick(self, TimesToSensors):
         temp = self.__orderByTime(TimesToSensors)
         times = []
         for element in temp[:3]:
@@ -879,10 +921,12 @@ class CylindricalLocation():
             y += sensor.Ycord / weights[j]
             sum += 1 / weights[j]
             j += 1
-            
+
         x0 = [x / sum, y / sum]
-        print("x0")
-        print(x0)
+        return (x0)
+
+    def simpleLocation(self, TimesToSensors):
+        x0 = self.__InitialKick(TimesToSensors)
 
         data = self.__orderMembers(TimesToSensors)
         IDs = []
@@ -897,7 +941,7 @@ class CylindricalLocation():
         normalizer = 1 / (np.max(MeasTimes) + 1)
 
         def CalcResidue(x):
-            tcalc = self.returnDeltaT(x[0], x[1], IDs, False)
+            tcalc = self.returnDeltaT(x[0], x[1], IDs, 'simple')
             tcalc = np.array(tcalc)
             residue = np.sqrt(np.sum(((tcalc - MeasTimes) * normalizer)**2))
             return residue
@@ -909,6 +953,8 @@ class CylindricalLocation():
         return res.get("x")
 
     def completeLocation(self, TimesToSensors):
+        x0 = self.__InitialKick(TimesToSensors)
+
         data = self.__orderMembers(TimesToSensors)
         IDs = []
         MeasTimes = []
@@ -922,20 +968,18 @@ class CylindricalLocation():
         normalizer = 1 / (np.max(MeasTimes) + 1)
 
         def CalcResidue(x):
-            tcalc = self.returnDeltaT(x[0], x[1], IDs, True)
+            tcalc = self.returnDeltaT(x[0], x[1], IDs, 'original')
             tcalc = np.array(tcalc)
             residue = np.sqrt(np.sum(((tcalc - MeasTimes) * normalizer)**2))
             return residue
 
-        x0 = self.simpleLocation(TimesToSensors)
-
-        res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 3E-3}, bounds=[
+        res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 8E-4}, bounds=[
                            (-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi), (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))])
         """
         res = opt.differential_evolution(CalcResidue, bounds=[
                                          (-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi), (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))])
         """
 
-        print(res)  # - Resultado da otimização
+        # print(res)  # - Resultado da otimização
 
         return res.get("x")
