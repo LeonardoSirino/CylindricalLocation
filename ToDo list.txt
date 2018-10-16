@@ -1,4 +1,3 @@
-﻿Algoritmo genético antes do método de Newron para se evitar os mínimos locais
-Espécies para tampos e casco?
+﻿Espécies para tampos e casco?
 Definir tolerâncias de parada adequadas
-Diminuir o tempo de cálculo de distância (geodésica) e miminizar o número de chamadas
+Diminuir o tempo de cálculo de distância (geodésica e seccionamento) e miminizar o número de chamadas
