@@ -17,12 +17,8 @@ semiperimeter = Locate.SemiPerimeter
 Locate.SetVelocity(5)
 
 # Posição dos sensores
-Locate.StructuredSensorDistribution(
-    lines=2, sensorsInLine=3, x0=0, y0=height / 3, dx=(diameter * m.pi) / 3, dy=height / 3, aligned=False)
-Locate.StructuredSensorDistribution(
-    lines=1, sensorsInLine=2, x0=0, y0=-semiperimeter / 2, dx=(diameter * m.pi) / 2, dy=0, aligned=False)
-Locate.StructuredSensorDistribution(lines=1, sensorsInLine=2, x0=(
-    diameter * m.pi) / 4, y0=height + semiperimeter / 2, dx=(diameter * m.pi) / 2, dy=0, aligned=False)
+Locate.StructuredSensorDistribution(lines=3, sensorsInLine=3, x0=0, y0=height +
+                                    semiperimeter / 4, dx=(diameter * m.pi) / 4, dy=semiperimeter / 4, aligned=False)
 
 # Vetores de posição dos sensores
 xS = []
@@ -32,11 +28,10 @@ for sensor in Locate.SensorList:
     yS.append(sensor.Ycord)
 
 # Pontos de teste
-xdivs = 3
+xdivs = 5
 ydivs = 5
-x_array = np.linspace(diameter * m.pi * 0.05, diameter * m.pi * 0.95, num=xdivs)
-y_array = np.linspace(-semiperimeter * 0.95, 0.95 *
-                      (height + semiperimeter), num=ydivs)
+x_array = np.linspace(diameter * m.pi * 0.01, diameter * m.pi * 0.99, num=xdivs)
+y_array = np.linspace(height * 1.1, height + semiperimeter, num=ydivs)
 
 # Inicialização dos vetores
 x_RP = np.zeros(xdivs * ydivs)
@@ -80,6 +75,6 @@ plt.plot(x_RP, y_RP, 'ko', x_IK, y_IK, x_SL, y_SL, x_CL, y_CL, xS, yS, 'yo')
 plt.legend(["Posição real", "Chute inicial", "Simples", "Completa", "Sensores"])
 plt.xlabel("Coordenada X")
 plt.ylabel("Coordenada Y")
-plt.ylim((-500, 1500))
+plt.ylim((900, 1500))
 plt.xlim((-100, 1400))
 plt.show()

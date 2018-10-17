@@ -18,7 +18,6 @@ class VesselPoint():
         self.Xcord = Xcord
         self.Ycord = Ycord
         self.ID = ID
-        self.Valid = True
 
     def SetXcord(self, Xcord):
         self.Xcord = Xcord
@@ -44,23 +43,8 @@ class VesselPoint():
     def SetZcap(self, Z):
         self.Zcap = Z
 
-    def SetValid(self, Valid):
-        """Validade de um ponto para se calcular a distância.
-        Os clones horizontais de pontos no tampo não são válidos e portanto não se deve a calcular a ditância até eles.
-        Esses são mantidos para manter a equivalência entre os vetores de sensores e clones
-
-        Arguments:
-            Valid {[boolean]} -- [validade do ponto]
-        """
-
-        self.Valid = Valid
-
     def __str__(self):
-        if self.Valid:
-            Valido = "Valido"
-        else:
-            Valido = "Invalido"
-        text = Valido + "ID: " + \
+        text = "ID: " + \
             str(self.ID) + " x: " + str(self.Xcord) + " y: " + str(self.Ycord)
         return text
 
@@ -73,7 +57,6 @@ class CylindricalLocation():
         self.veloc = 1
         self.__SensorID = -1
         self.__tempSensorList = None
-        self.__tempSensorListHClone = None
         self.CalcMode = 'geodesic'
         """Modos:
         geodesic - usando biblioteca do Python - GeoplotLib
@@ -319,11 +302,14 @@ class CylindricalLocation():
         elif P1.OnCap ^ P2.OnCap:
             dist = self.__DistWalltoCap(P1, P2)
         else:  # Distãncia entre pontos no casco
-            dist1 = m.sqrt((P1.Xcord - P2.Xcord) ** 2 + (P1.Ycord - P2.Ycord)**2)
+            dist1 = m.sqrt((P1.Xcord - P2.Xcord) **
+                           2 + (P1.Ycord - P2.Ycord)**2)
             # Clone à direita
-            dist2 = m.sqrt((P1.Xcord - P2.Xcord + self.diameter * m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
+            dist2 = m.sqrt((P1.Xcord - P2.Xcord + self.diameter *
+                            m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
             # Clone à esquerda
-            dist3 = m.sqrt((P1.Xcord - P2.Xcord - self.diameter * m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
+            dist3 = m.sqrt((P1.Xcord - P2.Xcord - self.diameter *
+                            m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
             dist = np.min([dist1, dist2, dist3])
 
         return dist
@@ -359,11 +345,20 @@ class CylindricalLocation():
                 v2c = np.array([-P2.Xcap, -P2.Ycap])
                 v12 = np.array([P2.Xcap - P1.Xcap, P2.Ycap - P1.Ycap])
 
-                theta1 = np.arccos(np.dot(v1c, v12) /
-                                   (np.linalg.norm(v1c) * np.linalg.norm(v12)))
+                cosTheta1 = np.dot(v1c, v12) / (np.linalg.norm(v1c) * np.linalg.norm(v12))
+                if cosTheta1 < -1:
+                    cosTheta1 = -1
+                elif cosTheta1 > 1:
+                    cosTheta1 = 1
 
-                theta2 = np.arccos(np.dot(v2c, v12) /
-                                   (np.linalg.norm(v2c) * np.linalg.norm(v12)))
+                cosTheta2 = np.dot(v2c, v12) / (np.linalg.norm(v2c) * np.linalg.norm(v12))
+                if cosTheta2 < -1:
+                    cosTheta2 = -1
+                elif cosTheta2 > 1:
+                    cosTheta2 = 1
+
+                theta1 = np.arccos(cosTheta1)
+                theta2 = np.arccos(cosTheta2)
 
                 if theta1 > m.pi / 2:
                     u1 = -u1
@@ -422,7 +417,7 @@ class CylindricalLocation():
         dist = FinalSearch.get("fun")
         MinPos = FinalSearch.get("x")[0]
         AuxPoint.SetXcord(MinPos)
-        BestPoint = AuxPoint # Ponto de interface
+        BestPoint = AuxPoint  # Ponto de interface
 
         return dist
 
@@ -552,7 +547,7 @@ class CylindricalLocation():
     def FindFurthestPoint(self):
         # Revisar este função
         def CalcDistRemotePoint(x):
-            distances = self.calcAllDist(SourceX=x[0], SourceY=x[1], IDs = [-1])
+            distances = self.calcAllDist(SourceX=x[0], SourceY=x[1], IDs=[-1])
             return np.min(distances)
 
         def CallBack(xk):
@@ -619,8 +614,10 @@ class CylindricalLocation():
         distances = []
         for sensor in self.SensorList:
             dist1 = np.sqrt((x - sensor.Xcord)**2 + (y - sensor.Ycord)**2)
-            dist2 = np.sqrt((x - sensor.Xcord + self.diameter * m.pi)**2 + (y - sensor.Ycord)**2)
-            dist3 = np.sqrt((x - sensor.Xcord - self.diameter * m.pi)**2 + (y - sensor.Ycord)**2)
+            dist2 = np.sqrt((x - sensor.Xcord + self.diameter *
+                             m.pi)**2 + (y - sensor.Ycord)**2)
+            dist3 = np.sqrt((x - sensor.Xcord - self.diameter *
+                             m.pi)**2 + (y - sensor.Ycord)**2)
             minDist = np.min([dist1, dist2, dist3])
             distances.append(minDist)
 
@@ -737,7 +734,8 @@ class CylindricalLocation():
             tcalc = self.returnDeltaT(x[0], x[1], IDs, 'simple')
             tcalc = np.array(tcalc)
             residue = np.sqrt(np.sum(((tcalc - MeasTimes) * normalizer)**2))
-            return residue
+            f = np.log10(residue)
+            return f
 
         res = opt.minimize(CalcResidue, x0, method='BFGS')
         # print("Localização simplificada:")
@@ -764,9 +762,11 @@ class CylindricalLocation():
             tcalc = self.returnDeltaT(x[0], x[1], IDs, 'original')
             tcalc = np.array(tcalc)
             residue = np.sqrt(np.sum(((tcalc - MeasTimes) * normalizer)**2))
-            return residue
+            f = np.log10(residue)
+            return f
 
-        res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 8E-4}, bounds=[
+        # options={"gtol": 1E-4}
+        res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', bounds=[
                            (-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi), (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))])
         """
         res = opt.differential_evolution(CalcResidue, bounds=[
@@ -795,25 +795,23 @@ class CylindricalLocation():
             residue = np.sqrt(np.sum((tcalc - MeasTimes)**2))
             return residue
 
-        N = 50
-
-        
+        N = 20
+        """
         x_array = np.linspace(0, self.diameter * m.pi, num=N)
         y_array = np.linspace(-self.SemiPerimeter,
                               self.height + self.SemiPerimeter, num=N)
         """
 
         x_array = np.linspace(0, self.diameter * m.pi, num=N)
-        y_array = np.linspace(self.height, self.height +
-                              self.SemiPerimeter, num=N)
-        """
+        y_array = np.linspace(self.height * 0, self.height +
+                              self.SemiPerimeter * 0, num=N)
 
         map = np.zeros((N, N))
         i = 0
         for x in x_array:
             j = 0
             for y in y_array:
-                map[i, j] = np.log10(CalcResidue([x, y]))
+                map[i, j] = CalcResidue([x, y])
                 print("i: " + str(i) + " - j: " + str(j))
                 j += 1
             i += 1

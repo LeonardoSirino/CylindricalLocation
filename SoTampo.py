@@ -16,16 +16,12 @@ semiperimeter = Locate.SemiPerimeter
 Locate.SetVelocity(5)
 
 # Posição dos sensores
-Locate.StructuredSensorDistribution(
-    lines=2, sensorsInLine=3, x0=0, y0=height / 3, dx=(diameter * m.pi) / 3, dy=height / 3, aligned=False)
-Locate.StructuredSensorDistribution(
-    lines=1, sensorsInLine=2, x0=0, y0=-semiperimeter / 2, dx=(diameter * m.pi) / 2, dy=0, aligned=False)
-Locate.StructuredSensorDistribution(lines=1, sensorsInLine=2, x0=(
-    diameter * m.pi) / 4, y0=height + semiperimeter / 2, dx=(diameter * m.pi) / 2, dy=0, aligned=False)
+Locate.StructuredSensorDistribution(lines=3, sensorsInLine=3, x0=0, y0=height +
+                                    semiperimeter / 4, dx=(diameter * m.pi) / 4, dy=semiperimeter / 4, aligned=False)
 
 # Ponto de teste
-xp = diameter * m.pi * 0.9
-yp = 900
+xp = diameter * m.pi * 0.7
+yp = 1100
 
 t = Locate.returnDeltaT(xp, yp, [-1], 'geodesic')
 data = []
