@@ -57,3 +57,5 @@ t1 = time.time()
 print("Localização completa:")
 print(x)
 print("Tempo decorrido: " + str(t1 - t0))
+
+Locate.fCostMap(data)

@@ -3,6 +3,11 @@ import matplotlib.pyplot as plt
 import scipy.optimize as opt
 import math as m
 import numpy as np
+import copy
+
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
 class VesselPoint():
@@ -473,6 +478,15 @@ class CylindricalLocation():
         else:
             Yaux = 0
 
+        # Delta para o clone horizontal
+        if Pcap.Xcord > self.diameter * m.pi / 2:
+            deltaClone = self.diameter * m.pi
+        else:
+            deltaClone = - self.diameter * m.pi
+
+        PClone = copy.copy(Pwall)
+        PClone.Xcord += deltaClone
+
         AuxPoint = VesselPoint(0, Yaux, -2)
         AuxGenPlot = self.__GenPlot
         self.__GenPlot = False  # Desabilitando temporariamente os gráficos para melhor desempenho
@@ -490,7 +504,9 @@ class CylindricalLocation():
             AuxPoint.SetXcord(Xaux)
             self.__AuxCoords(AuxPoint)
             AuxPoint.SetOnCap(False)
-            dist1 = self.__calcDist(Pwall, AuxPoint)
+            distWall1 = self.__calcDist(Pwall, AuxPoint)
+            distWall2 = self.__calcDist(PClone, AuxPoint)
+            dist1 = np.min([distWall1, distWall2])
             AuxPoint.SetOnCap(True)
             dist2 = self.__calcDist(AuxPoint, Pcap)
             totalDist = dist1 + dist2
@@ -903,7 +919,8 @@ class CylindricalLocation():
     def __InitialKick(self, TimesToSensors):
         temp = self.__orderByTime(TimesToSensors)
         times = []
-        for element in temp[:3]:
+        Nsensors = 3
+        for element in temp[:Nsensors]:
             (ID, time) = element
             times.append(time)
 
@@ -914,7 +931,7 @@ class CylindricalLocation():
         y = 0
         j = 0
         sum = 0
-        for element in temp[:3]:
+        for element in temp[:Nsensors]:
             (ID, time) = element
             sensor = self.__getSensorbyID(ID)
             x += sensor.Xcord / weights[j]
@@ -923,6 +940,12 @@ class CylindricalLocation():
             j += 1
 
         x0 = [x / sum, y / sum]
+        """
+        # Definindo como sendo o sensor mais próximo
+        (ID, time) = temp[0]
+        sensor = self.__getSensorbyID(ID)
+        x0 = [sensor.Xcord, sensor.Ycord]
+        """
         return (x0)
 
     def simpleLocation(self, TimesToSensors):
@@ -980,6 +1003,55 @@ class CylindricalLocation():
                                          (-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi), (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))])
         """
 
-        # print(res)  # - Resultado da otimização
+        print(res)  # - Resultado da otimização
 
         return res.get("x")
+
+    def fCostMap(self, TimesToSensors):
+        data = self.__orderMembers(TimesToSensors)
+        IDs = []
+        MeasTimes = []
+
+        for member in data:
+            (ID, time) = member
+            IDs.append(ID)
+            MeasTimes.append(time)
+
+        MeasTimes = np.array(MeasTimes)
+
+        def CalcResidue(x):
+            tcalc = self.returnDeltaT(x[0], x[1], IDs, 'original')
+            tcalc = np.array(tcalc)
+            residue = np.sqrt(np.sum((tcalc - MeasTimes)**2))
+            return residue
+
+        N = 50
+
+        x_array = np.linspace(0, self.diameter * m.pi, num=N)
+        y_array = np.linspace(-self.SemiPerimeter,
+                              self.height + self.SemiPerimeter, num=N)
+
+        x_array = np.linspace(0, self.diameter * m.pi, num=N)
+        y_array = np.linspace(self.height, self.height +
+                              self.SemiPerimeter, num=N)
+
+        map = np.zeros((N, N))
+        i = 0
+        j = 0
+        for x in x_array:
+            for y in y_array:
+                if i >= N or j >= N:
+                    break
+                map[i, j] = np.log10(CalcResidue([x, y]))
+                j += 1
+            i += 1
+
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+
+        x_array, y_array = np.meshgrid(x_array, y_array)
+
+        surf = ax.plot_surface(x_array, y_array, map, cmap=cm.coolwarm,
+                               linewidth=0, antialiased=False)
+
+        plt.show()
