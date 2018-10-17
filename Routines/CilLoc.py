@@ -4,6 +4,7 @@ import scipy.optimize as opt
 import math as m
 import numpy as np
 import copy
+import time
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
@@ -345,13 +346,15 @@ class CylindricalLocation():
                 v2c = np.array([-P2.Xcap, -P2.Ycap])
                 v12 = np.array([P2.Xcap - P1.Xcap, P2.Ycap - P1.Ycap])
 
-                cosTheta1 = np.dot(v1c, v12) / (np.linalg.norm(v1c) * np.linalg.norm(v12))
+                cosTheta1 = np.dot(v1c, v12) / \
+                    (np.linalg.norm(v1c) * np.linalg.norm(v12))
                 if cosTheta1 < -1:
                     cosTheta1 = -1
                 elif cosTheta1 > 1:
                     cosTheta1 = 1
 
-                cosTheta2 = np.dot(v2c, v12) / (np.linalg.norm(v2c) * np.linalg.norm(v12))
+                cosTheta2 = np.dot(v2c, v12) / \
+                    (np.linalg.norm(v2c) * np.linalg.norm(v12))
                 if cosTheta2 < -1:
                     cosTheta2 = -1
                 elif cosTheta2 > 1:
@@ -389,7 +392,6 @@ class CylindricalLocation():
             Yaux = 0
 
         AuxPoint = VesselPoint(0, Yaux, -2)
-        self.__GenPlot = False  # Desabilitando temporariamente os gráficos para melhor desempenho
 
         def CalcWallToCap(Xaux):
             """[Função para cálculo de distância entre um ponto no casco e outro no tampo]
@@ -410,9 +412,13 @@ class CylindricalLocation():
             totalDist = dist1 + dist2
             return totalDist
 
+        t0 = time.time()
         InitGuess = opt.brute(
             CalcWallToCap, ((0, m.pi * self.diameter),), Ns=6)
+        t1 = time.time()
         FinalSearch = opt.minimize(CalcWallToCap, x0=InitGuess, method="BFGS")
+        t2 = time.time()
+        # print("Brute: " + str(t1 - t0) + " - BFGS: " + str(t2 - t1))
         # print(FinalSearch) -- Resultado da minimização
         dist = FinalSearch.get("fun")
         MinPos = FinalSearch.get("x")[0]
