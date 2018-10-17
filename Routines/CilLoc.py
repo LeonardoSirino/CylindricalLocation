@@ -478,14 +478,11 @@ class CylindricalLocation():
         else:
             Yaux = 0
 
-        # Delta para o clone horizontal
-        if Pcap.Xcord > self.diameter * m.pi / 2:
-            deltaClone = self.diameter * m.pi
-        else:
-            deltaClone = - self.diameter * m.pi
-
-        PClone = copy.copy(Pwall)
-        PClone.Xcord += deltaClone
+        PClone1 = copy.copy(Pwall)
+        PClone1.Xcord += self.diameter * m.pi
+        
+        PClone2 = copy.copy(Pwall)
+        PClone2.Xcord += - self.diameter * m.pi
 
         AuxPoint = VesselPoint(0, Yaux, -2)
         AuxGenPlot = self.__GenPlot
@@ -505,8 +502,9 @@ class CylindricalLocation():
             self.__AuxCoords(AuxPoint)
             AuxPoint.SetOnCap(False)
             distWall1 = self.__calcDist(Pwall, AuxPoint)
-            distWall2 = self.__calcDist(PClone, AuxPoint)
-            dist1 = np.min([distWall1, distWall2])
+            distWall2 = self.__calcDist(PClone1, AuxPoint)
+            distWall3 = self.__calcDist(PClone2, AuxPoint)
+            dist1 = np.min([distWall1, distWall2, distWall3])
             AuxPoint.SetOnCap(True)
             dist2 = self.__calcDist(AuxPoint, Pcap)
             totalDist = dist1 + dist2
@@ -1003,7 +1001,7 @@ class CylindricalLocation():
                                          (-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi), (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))])
         """
 
-        print(res)  # - Resultado da otimização
+        # print(res)  # - Resultado da otimização
 
         return res.get("x")
 
@@ -1027,22 +1025,24 @@ class CylindricalLocation():
 
         N = 50
 
+        
         x_array = np.linspace(0, self.diameter * m.pi, num=N)
         y_array = np.linspace(-self.SemiPerimeter,
                               self.height + self.SemiPerimeter, num=N)
+        """
 
         x_array = np.linspace(0, self.diameter * m.pi, num=N)
         y_array = np.linspace(self.height, self.height +
                               self.SemiPerimeter, num=N)
+        """
 
         map = np.zeros((N, N))
         i = 0
-        j = 0
         for x in x_array:
+            j = 0
             for y in y_array:
-                if i >= N or j >= N:
-                    break
                 map[i, j] = np.log10(CalcResidue([x, y]))
+                print("i: " + str(i) + " - j: " + str(j))
                 j += 1
             i += 1
 

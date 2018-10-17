@@ -24,8 +24,8 @@ Locate.StructuredSensorDistribution(lines=1, sensorsInLine=2, x0=(
     diameter * m.pi) / 4, y0=height + semiperimeter / 2, dx=(diameter * m.pi) / 2, dy=0, aligned=False)
 
 # Ponto de teste
-xp = diameter * m.pi / 2
-yp = 1100
+xp = diameter * m.pi * 0.7
+yp = 500
 
 t = Locate.returnDeltaT(xp, yp, [-1], 'geodesic')
 data = []
@@ -58,4 +58,4 @@ print("Localização completa:")
 print(x)
 print("Tempo decorrido: " + str(t1 - t0))
 
-Locate.fCostMap(data)
+# Locate.fCostMap(data)
