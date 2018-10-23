@@ -11,16 +11,17 @@ erro_section = []
 tt_geo = 0
 tt_section = 0
 tt_plan = 0
-arcs = np.linspace(0, 60.5, num=20)
+arcs = np.linspace(0, 60.5, num=50)
 max_errors = []
+diameter = 100
 for s in arcs:
     max_error = 0
     for x in np.linspace(1, 314, num=500):
 
-        xpos.append(x)
+        xpos.append(x / diameter)
 
         point.f = 0.5
-        point.diameter = 100
+        point.diameter = diameter
         point.divs = 500
 
         t0 = time.time()
@@ -31,7 +32,7 @@ for s in arcs:
         point1.AuxCoordsGeodesic()
 
         x2 = 0
-        s2 = s
+        s2 = 0
         point2 = point(x2, s2)
         point2.AuxCoordsGeodesic()
 
@@ -42,7 +43,7 @@ for s in arcs:
         t1 = time.time()
         tt_geo += t1 - t0
 
-        s_real.append(sreal)
+        s_real.append(sreal / diameter)
 
         t0 = time.time()
 
@@ -52,7 +53,7 @@ for s in arcs:
         t1 = time.time()
         tt_section += t1 - t0
 
-        s_sec.append(ssec)
+        s_sec.append(ssec / diameter)
 
         t0 = time.time()
 
@@ -63,13 +64,13 @@ for s in arcs:
         t1 = time.time()
         tt_plan += t1 - t0
 
-        s_plan.append(dplan)
+        s_plan.append(dplan / diameter)
 
-        erro_plan.append(abs(sreal - dplan))
-        erro_section.append(abs(sreal - ssec))
+        erro_plan.append(abs(sreal - dplan) / diameter)
+        erro_section.append(abs(sreal - ssec) / diameter)
 
-        if abs(sreal - ssec) > abs(max_error):
-            max_error = sreal - ssec
+        if abs(sreal - ssec) / diameter > abs(max_error):
+            max_error = abs((sreal - ssec) / diameter)
 
     max_errors.append(max_error)
     s_plan.append(m.nan)
@@ -87,17 +88,22 @@ print("Tempo total planificado:")
 print(tt_plan)
 
 plt.plot(xpos, s_real, xpos, s_sec, xpos, s_plan)
-plt.legend(['real', 'section', 'plan'])
+plt.legend(['Real', 'Seccionamento', 'Planificado'])
 plt.title("Distâncias")
-plt.show()
-plt.plot(xpos, erro_plan, xpos, erro_section)
-plt.legend(['erro planificado', 'erro section'])
-plt.title("Erros")
+plt.xlabel('Posição X normalizada')
+plt.ylabel('Distância normalizada')
 plt.show()
 
+plt.plot(xpos, erro_plan, xpos, erro_section)
+plt.legend(['Erro planificado', 'Erro seccionamento'])
+plt.title("Erros")
+plt.xlabel('Posição X normalizada')
+plt.ylabel("Erro normalizado")
+plt.show('Erro normalizado')
+
 plt.plot(arcs, max_errors)
-plt.legend(['erro máximo'])
-plt.title("Erro máximo")
-plt.xlabel("Arco até o corpo [mm]")
-plt.ylabel("Erro [mm]")
+plt.legend(['Erro máximo'])
+plt.title("Erro máximo normalizado")
+plt.xlabel("Distância até o corpo normalizada")
+plt.ylabel("Erro normalizado")
 plt.show()
