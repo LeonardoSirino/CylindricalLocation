@@ -772,7 +772,7 @@ class CylindricalLocation():
             return f
 
         # options={"gtol": 1E-4}
-        res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', bounds=[
+        res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 1E-4}, bounds=[
                            (-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi), (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))])
         """
         res = opt.differential_evolution(CalcResidue, bounds=[

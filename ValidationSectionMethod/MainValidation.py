@@ -11,11 +11,13 @@ erro_section = []
 tt_geo = 0
 tt_section = 0
 tt_plan = 0
-arcs = np.linspace(0, 60.5, num=50)
+arcs = np.linspace(0, 60.5, num=10)
 max_errors = []
+max_errors_plan = []
 diameter = 100
 for s in arcs:
     max_error = 0
+    max_error_plan = 0
     for x in np.linspace(1, 314, num=500):
 
         xpos.append(x / diameter)
@@ -72,7 +74,11 @@ for s in arcs:
         if abs(sreal - ssec) / diameter > abs(max_error):
             max_error = abs((sreal - ssec) / diameter)
 
+        if abs(dplan - sreal) / diameter > abs(max_error_plan):
+            max_error_plan = abs((dplan - sreal) / diameter)
+
     max_errors.append(max_error)
+    max_errors_plan.append(max_error_plan)
     s_plan.append(m.nan)
     s_real.append(m.nan)
     s_sec.append(m.nan)
@@ -101,8 +107,9 @@ plt.xlabel('Posição X normalizada')
 plt.ylabel("Erro normalizado")
 plt.show('Erro normalizado')
 
-plt.plot(arcs, max_errors)
-plt.legend(['Erro máximo'])
+# plt.plot(arcs, max_errors, arcs, max_errors_plan)
+plt.loglog(arcs, max_errors, arcs, max_errors_plan)
+plt.legend(['Erro seccionamento', 'Erro planificado'])
 plt.title("Erro máximo normalizado")
 plt.xlabel("Distância até o corpo normalizada")
 plt.ylabel("Erro normalizado")
