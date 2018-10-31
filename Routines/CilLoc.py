@@ -419,13 +419,13 @@ class CylindricalLocation():
         FinalSearch = opt.minimize(CalcWallToCap, x0=InitGuess, method="BFGS")
         t2 = time.time()
         # print("Brute: " + str(t1 - t0) + " - BFGS: " + str(t2 - t1))
-        # print(FinalSearch) -- Resultado da minimização
+        # print(FinalSearch) #-- Resultado da minimização
         dist = FinalSearch.get("fun")
         MinPos = FinalSearch.get("x")[0]
         AuxPoint.SetXcord(MinPos)
         BestPoint = AuxPoint  # Ponto de interface
 
-        return dist
+        return dist, BestPoint
 
     def __DistCaptoCap(self, Psup, Pinf):
         AuxPoint1 = VesselPoint(0, self.height, -2)
