@@ -19,7 +19,7 @@ Locate.SetVelocity(5)
 # Ponto no tampo
 Pcap = VesselPoint(0, 0, 0)
 Pcap.Xcord = 0.5 * diameter * m.pi
-Pcap.Ycord = height + 240
+Pcap.Ycord = height + 100
 Pcap.OnCap = True
 Pcap.Cap = "sup"
 Locate._CylindricalLocation__AuxCoords(Pcap)
@@ -31,7 +31,7 @@ Pwall.Ycord = height * 0.2
 Pwall.OnCap = False
 
 num_Xwall = 200
-num_Ywall = 5
+num_Ywall = 10
 X_Pwall = np.linspace(0, diameter * m.pi, num=num_Xwall)
 Y_Pwall = np.linspace(0, height, num=num_Ywall)
 x_otim = np.zeros(num_Xwall)
