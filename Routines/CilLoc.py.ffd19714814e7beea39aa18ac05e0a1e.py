@@ -10,7 +10,6 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
-
 class VesselPoint():
     """Classe para definir as propriedades de um ponto no vaso
     """
@@ -72,14 +71,10 @@ class CylindricalLocation():
         self.__DivsTolerance = 100
 
         # Inicialização dos tempos acumulados
-        self.t_samecap = 0
-        self.t_wallcap = 0
-        self.t_wall = 0
-        self.t_captocap = 0
-        self.i_samecap = 0
-        self.i_wallcap = 0
-        self.i_wall = 0
-        self.i_captocap = 0
+        t_samecap = 0
+        t_wallcap = 0
+        t_wall = 0
+        t_captocap = 0
 
     def setCalcMode(self, mode):
         self.CalcMode = mode
@@ -303,8 +298,7 @@ class CylindricalLocation():
                 t0 = time.time()
                 dist = self.__DistSameCap(P1, P2)
                 t1 = time.time()
-                self.t_samecap += t1 - t0
-                self.i_samecap += 1
+                t_samecap += t1 - t0
             else:  # Pontos em tampos opostos
                 if P1.Cap == "sup":
                     Psup = P1
@@ -315,15 +309,13 @@ class CylindricalLocation():
                 t0 = time.time()
                 dist = self.__DistCaptoCap(Psup, Pinf)
                 t1 = time.time()
-                self.t_captocap += t1 - t0
-                self.i_captocap += 1
+                t_captocap += t1 - t0
         # Distância entre um ponto no casco e outro no tampo
         elif P1.OnCap ^ P2.OnCap:
             t0 = time.time()
             dist = self.__DistWalltoCap(P1, P2)
             t1 = time.time()
-            self.t_wallcap += t1 - t0
-            self.i_wallcap += 1
+            t_walltocap += t1 - t0
         else:  # Distãncia entre pontos no casco
             t0 = time.time()
             dist1 = m.sqrt((P1.Xcord - P2.Xcord) **
@@ -337,8 +329,7 @@ class CylindricalLocation():
             dist = np.min([dist1, dist2, dist3])
 
             t1 = time.time()
-            self.t_wall += t1 - t0
-            self.i_wall += 1
+            t_wall += t1 - t0
 
         return dist
 
@@ -778,14 +769,10 @@ class CylindricalLocation():
 
     def completeLocation(self, TimesToSensors):
         # Inicialização dos tempos acumulados
-        self.t_samecap = 0
-        self.t_wallcap = 0
-        self.t_wall = 0
-        self.t_captocap = 0
-        self.i_samecap = 0
-        self.i_wallcap = 0
-        self.i_wall = 0
-        self.i_captocap = 0
+        t_samecap = 0
+        t_wallcap = 0
+        t_wall = 0
+        t_captocap = 0
 
         x0 = self.__InitialKick(TimesToSensors)
 
@@ -818,16 +805,10 @@ class CylindricalLocation():
 
         # print(res)  # - Resultado da otimização
 
-        print("Tempos de cada modo de cálculo de distâncias")
-        print("Mesmo tampo: " + str(round(self.t_samecap, 3)) +
-              " em " + str(self.i_samecap) + " avaliações / tempo médio: " + str(round(self.t_samecap / self.i_samecap, 4)) + " s")
-        print("Corpo tampo: " + str(round(self.t_wallcap, 3)) +
-              " em " + str(self.i_wallcap) + " avaliações / tempo médio: " + str(round(self.t_wallcap / self.i_wallcap, 4)) + " s")
-        print("Tampo tampo: " + str(round(self.t_captocap, 3)) +
-              " em " + str(self.i_captocap) + " avaliações / tempo médio: " + str(round(self.t_captocap / self.i_captocap, 4)) + " s")
-        print("Corpo: " + str(round(self.t_wall, 3)) +
-              " em " + str(self.i_wall) + " avaliações / tempo médio: " + str(round(self.t_wall / self.i_wall, 4)) + " s")
-        print("\n")
+        print("Mesmo tampo:" + str(round(t_samecap, 3)))
+        print("Corpo tampo:" + str(round(t_wallcap, 3)))
+        print("Tampo tampo:" + str(round(t_captocap, 3)))
+        print("Corpo:" + str(round(t_wall, 3)))
 
         return res.get("x")
 
