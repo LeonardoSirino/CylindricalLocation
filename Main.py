@@ -5,7 +5,7 @@ import time
 import math as m
 
 # Parâmetros do vaso
-diameter = 400.0
+diameter = 300.0
 height = 1000.0
 f = 0.5
 
