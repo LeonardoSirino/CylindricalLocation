@@ -839,7 +839,7 @@ class CylindricalLocation():
         # Inicialização dos tempos acumulados
         #self.__initializeTimes()
 
-        #x0 = self.__InitialKick(TimesToSensors)
+        x0 = self.__InitialKick(TimesToSensors)
 
         data = self.__orderMembers(TimesToSensors)
         (firstID, t0) = data[0]
@@ -863,20 +863,20 @@ class CylindricalLocation():
             return f
 
         # options={"gtol": 1E-4}
-        bounds = [(-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi),
+        bounds = [(-0.20 * self.diameter * m.pi, 1.20 * self.diameter * m.pi),
                   (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))]
         maxiter = 1000
         polish = False
 
-        """
+
         res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 1E-4}, bounds=bounds)
         """
 
         res = opt.differential_evolution(
             CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish)
+        """
 
-
-        print(res)  # - Resultado da otimização
+        #print(res)  # - Resultado da otimização
 
         #self.__printTimes()
 
