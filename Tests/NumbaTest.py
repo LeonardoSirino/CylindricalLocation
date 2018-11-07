@@ -9,17 +9,20 @@ values = np.linspace(-1, 1, num=2000000)
 def SomeSlowStuff(values):
     for value in values:
         x = np.arccos(value)
+        return x
 
 
 t0 = time.time()
-SomeSlowStuff(values)
+x = SomeSlowStuff(values)
+print(x)
 t1 = time.time()
 dt = t1 - t0
 
 print("Primeira vez: " + str(dt))
 
 t0 = time.time()
-SomeSlowStuff(values)
+x = SomeSlowStuff(values)
+print(x)
 t1 = time.time()
 dt = t1 - t0
 

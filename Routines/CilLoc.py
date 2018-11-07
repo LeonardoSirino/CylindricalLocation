@@ -9,6 +9,7 @@ import time
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
+from numba import jit
 
 class VesselPoint():
     """Classe para definir as propriedades de um ponto no vaso
@@ -189,14 +190,33 @@ class CylindricalLocation():
         f = self.f
 
         if self.SectionMode == "reg":
-            Ri = Ri / a
-            Rf = Rf / a
+            @jit(nopython=True)
+            def RegArc(Ri, Rf, a, pol):
+                Ri = Ri / a
+                Rf = Rf / a
+                n = 0
+                si = 0
+                for coef in pol:
+                    si += coef * Ri ** n
+
+                n = 0
+                sf = 0
+                for coef in pol:
+                    sf += coef * Rf ** n
+
+                """
+                si = np.polyval(pol, Ri) * a
+                sf = np.polyval(pol, Rf) * a
+                """
+                s = sf - si
+
+                return s
+
             pol = [9.94406631e-01, -5.42331127e-13, -1.67276958e+00,  9.30333908e-13,
                    9.92271096e-01, -4.52365676e-13, -1.60763495e-01,  8.69627507e-14,
                    1.01106572e+00,  1.21105713e+00]
-            si = np.polyval(pol, Ri) * a
-            sf = np.polyval(pol, Rf) * a
-            s = sf - si
+            s = RegArc(Ri, Rf, a, pol)
+
         elif self.SectionMode == "inc":
             s = 0
             z1 = a * f * m.sqrt(1 - Ri**2 / a**2)
