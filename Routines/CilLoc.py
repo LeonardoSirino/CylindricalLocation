@@ -10,7 +10,6 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
-
 class VesselPoint():
     """Classe para definir as propriedades de um ponto no vaso
     """
@@ -324,16 +323,17 @@ class CylindricalLocation():
             t1 = time.time()
             self.t_wallcap += t1 - t0
             self.i_wallcap += 1
-        else:  # Distãncia entre pontos no casco
+        else:  # Distância entre pontos no casco
             t0 = time.time()
-            dist1 = m.sqrt((P1.Xcord - P2.Xcord) **
+            dist1 = np.sqrt((P1.Xcord - P2.Xcord) **
                            2 + (P1.Ycord - P2.Ycord)**2)
             # Clone à direita
-            dist2 = m.sqrt((P1.Xcord - P2.Xcord + self.diameter *
+            dist2 = np.sqrt((P1.Xcord - P2.Xcord + self.diameter *
                             m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
             # Clone à esquerda
-            dist3 = m.sqrt((P1.Xcord - P2.Xcord - self.diameter *
+            dist3 = np.sqrt((P1.Xcord - P2.Xcord - self.diameter *
                             m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
+
             dist = np.min([dist1, dist2, dist3])
 
             t1 = time.time()
@@ -375,25 +375,16 @@ class CylindricalLocation():
 
                 cosTheta1 = np.dot(v1c, v12) / \
                     (np.linalg.norm(v1c) * np.linalg.norm(v12))
-                if cosTheta1 < -1:
-                    cosTheta1 = -1
-                elif cosTheta1 > 1:
-                    cosTheta1 = 1
 
                 cosTheta2 = np.dot(v2c, v12) / \
                     (np.linalg.norm(v2c) * np.linalg.norm(v12))
-                if cosTheta2 < -1:
-                    cosTheta2 = -1
-                elif cosTheta2 > 1:
-                    cosTheta2 = 1
 
-                theta1 = np.arccos(cosTheta1)
-                theta2 = np.arccos(cosTheta2)
-
-                if theta1 > m.pi / 2:
+                if cosTheta1 <= 0:
+                    # Ponto está do outro lado do centro da elipse
                     u1 = -u1
 
-                if theta2 > m.pi / 2:
+                if cosTheta2 <= 0:
+                    # Ponto está do outro lado do centro da elipse
                     u2 = -u2
 
                 a = redF * self.diameter / 2
@@ -433,24 +424,34 @@ class CylindricalLocation():
             AuxPoint.SetXcord(Xaux)
             self.__AuxCoords(AuxPoint)
             AuxPoint.SetOnCap(False)
+
+            t0 = time.time()
+
             dist1 = self.__calcDist(Pwall, AuxPoint)
+
+            t1 = time.time()
+            dt1 = t1 - t0
+            self.t_wall -= dt1
+            self.i_wall -= 1
+
             AuxPoint.SetOnCap(True)
+
+            t0 = time.time()
+
             dist2 = self.__calcDist(AuxPoint, Pcap)
+
+            t1 = time.time()
+            dt2 = t1 - t0
+            self.t_samecap -= dt2
+            self.i_samecap -= 1
+
             totalDist = dist1 + dist2
             return totalDist
 
-        t0 = time.time()
-        InitGuess = opt.brute(
-            CalcWallToCap, ((0, m.pi * self.diameter),), Ns=6)
-        FinalSearch = opt.minimize(CalcWallToCap, x0=InitGuess, method="BFGS")
-        t1 = time.time()
-        dt = t1 - t0
-        # print("Brute: " + str(round(t1 - t0, 4)) + " - BFGS: " + str(round(t2 - t1, 4)))
+        InitGuess = opt.brute(CalcWallToCap, ((0, m.pi * self.diameter),), Ns=6)
+        FinalSearch = opt.minimize(CalcWallToCap, x0=InitGuess, method="BFGS", options={'maxiter': 5})
         # print(FinalSearch) -- Resultado da minimização
         dist = FinalSearch.get("fun")
-        MinPos = FinalSearch.get("x")[0]
-        AuxPoint.SetXcord(MinPos)
-        BestPoint = AuxPoint  # Ponto de interface
 
         return dist
 
@@ -482,7 +483,7 @@ class CylindricalLocation():
             totalDist = dist1 + dist2 + dist3
             return totalDist
 
-        # -- Chute inicial com otimização bruta
+        # Chute inicial com otimização bruta
         SearchRange = (0, m.pi * self.diameter)
         InitGuess = opt.brute(CalcCaptoCap, (SearchRange, SearchRange), Ns=6)
         FinalSearch = opt.minimize(CalcCaptoCap, x0=InitGuess, method="BFGS")
@@ -496,9 +497,19 @@ class CylindricalLocation():
         return dist
 
     def __DistVClone(self, Source, Sensor):
+        # Mudar o calculo para uma condição simplificada, assumindo que o caminho da onda é vertical até a interface, dessa forma não haverá minimização envolvida
         SemiHeight = self.height / 2
-        Cond1 = (Source.Ycord > SemiHeight and Sensor.Ycord > SemiHeight) or (
-            Source.Ycord < SemiHeight and Sensor.Ycord < SemiHeight)
+        dx1 = abs(Source.Xcord - Sensor.Xcord)
+        dx2 = abs(Source.Xcord - Sensor.Xcord + m.pi * self.diameter)
+        dx3 = abs(Source.Xcord - Sensor.Xcord - m.pi * self.diameter)
+        dx = np.min([dx1, dx2, dx3])
+        dy = Sensor.Ycord - Source.Ycord
+        d = np.sqrt(dx**2 + dy**2)
+        capDistance = dx * self.SemiPerimeter / (m.pi * self.diameter) # É apenas uma aproximação, tem como calcular melhor esse valor
+
+        case1 = (Source.Ycord + Sensor.Ycord + capDistance) <= d
+        case2 = (2 * self.height - Source.Ycord + Sensor.Ycord + capDistance) <= d
+        Cond1 = case1 or case2
         Cond2 = not (Source.OnCap or Sensor.OnCap)
         if Cond1 and Cond2:
             if Source.Ycord > SemiHeight:
@@ -621,25 +632,81 @@ class CylindricalLocation():
             for sensor in temp:
                 self.SensorList[sensor.ID] = sensor
 
+    def __initializeTimes(self):
+        self.t_samecap = 0
+        self.t_wallcap = 0
+        self.t_wall = 0
+        self.t_captocap = 0
+        self.i_samecap = 0
+        self.i_wallcap = 0
+        self.i_wall = 0
+        self.i_captocap = 0
+
+    def __printTimes(self):
+        print("\nTempos de cada modo de cálculo de distâncias")
+        try:
+            print("Mesmo tampo: " + str(round(self.t_samecap, 3)) +
+                  " em " + str(self.i_samecap) + " avaliações / tempo médio: " + str(round(self.t_samecap / self.i_samecap, 4)) + " s")
+        except:
+            pass
+        try:
+            print("Corpo tampo: " + str(round(self.t_wallcap, 3)) +
+                  " em " + str(self.i_wallcap) + " avaliações / tempo médio: " + str(round(self.t_wallcap / self.i_wallcap, 4)) + " s")
+        except:
+            pass
+        try:
+            print("Tampo tampo: " + str(round(self.t_captocap, 3)) +
+                  " em " + str(self.i_captocap) + " avaliações / tempo médio: " + str(round(self.t_captocap / self.i_captocap, 4)) + " s")
+        except:
+            pass
+        try:
+            print("Corpo: " + str(round(self.t_wall, 3)) +
+                  " em " + str(self.i_wall) + " avaliações / tempo médio: " + str(round(self.t_wall / self.i_wall, 4)) + " s")
+        except:
+            pass
+
+        print("\n")
+
     def calcAllDist(self, SourceX, SourceY, IDs):
+        """
+        # Inicialização dos tempos acumulados de cálculo de distâncias  - medição de performance
+        self.__initializeTimes()
+        """
+
         self.__removeSensors(IDs)
         Source = VesselPoint(SourceX, SourceY, -1)
         self.__AuxCoords(Source)
-        MinDistances = []
 
+        t0 = time.time()
+
+        MinDistances = np.zeros(len(self.SensorList))
         i = -1
         for sensor in self.SensorList:
             i += 1
 
             distDirect = self.__calcDist(Source, sensor)
-            distVClone = self.__DistVClone(Source, sensor)
+            distVClone = -1
+            #distVClone = self.__DistVClone(Source, sensor)
             if distVClone == -1:
                 distVClone = distDirect * 10
+            else:
+                print("Distância direta: " + str(distDirect))
+                print("Clone vertical :" + str(distVClone))
 
             Distances = [distDirect, distVClone]
-            MinDistances.append(np.min(Distances))
+            MinDistances[i] = np.min(Distances)
 
         self.__returnSensors()
+
+        t1 = time.time()
+        dt = t1 - t0
+
+        # Report dos tempos para calcular todas as distâncias
+        """
+        self.__printTimes()
+        print("Tempo total: " + str(round(dt, 5)))
+        """
+
         return MinDistances
 
     def __SimplifiedDistances(self, x, y, IDs):
@@ -690,22 +757,14 @@ class CylindricalLocation():
             self.__AllSensorsAuxCoords()
 
         NPdist = np.array(distances)
-        NPdist += -np.min(NPdist)
-        times = NPdist / self.veloc
+        times = (NPdist - NPdist[0]) / self.veloc
+        
         return times
 
     def __orderMembers(self, TimesToSensors):
-        IDs = []
-        for member in TimesToSensors:
-            (ID, time) = member
-            IDs.append(ID)
-
-        IDs.sort()
-        OrderedMembers = [0] * len(IDs)
-        for member in TimesToSensors:
-            (ID, time) = member
-            i = IDs.index(ID)
-            OrderedMembers[i] = member
+        type = [('ID', int), ('time', float)]
+        data = np.array(TimesToSensors, dtype=type)
+        OrderedMembers = np.sort(data, order='ID')
 
         return OrderedMembers
 
@@ -778,25 +837,19 @@ class CylindricalLocation():
 
     def completeLocation(self, TimesToSensors):
         # Inicialização dos tempos acumulados
-        self.t_samecap = 0
-        self.t_wallcap = 0
-        self.t_wall = 0
-        self.t_captocap = 0
-        self.i_samecap = 0
-        self.i_wallcap = 0
-        self.i_wall = 0
-        self.i_captocap = 0
+        #self.__initializeTimes()
 
-        x0 = self.__InitialKick(TimesToSensors)
+        #x0 = self.__InitialKick(TimesToSensors)
 
         data = self.__orderMembers(TimesToSensors)
+        (firstID, t0) = data[0]
         IDs = []
         MeasTimes = []
 
         for member in data:
-            (ID, time) = member
+            (ID, TOF) = member
             IDs.append(ID)
-            MeasTimes.append(time)
+            MeasTimes.append(TOF - t0)
 
         MeasTimes = np.array(MeasTimes)
         normalizer = 1 / (np.max(MeasTimes) + 1)
@@ -806,28 +859,26 @@ class CylindricalLocation():
             tcalc = np.array(tcalc)
             residue = np.sqrt(np.sum(((tcalc - MeasTimes) * normalizer)**2))
             f = np.log10(residue)
+
             return f
 
         # options={"gtol": 1E-4}
-        res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 1E-4}, bounds=[
-                           (-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi), (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))])
+        bounds = [(-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi),
+                  (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))]
+        maxiter = 1000
+        polish = False
+
         """
-        res = opt.differential_evolution(CalcResidue, bounds=[
-                                         (-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi), (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))])
+        res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 1E-4}, bounds=bounds)
         """
 
-        # print(res)  # - Resultado da otimização
+        res = opt.differential_evolution(
+            CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish)
 
-        print("Tempos de cada modo de cálculo de distâncias")
-        print("Mesmo tampo: " + str(round(self.t_samecap, 3)) +
-              " em " + str(self.i_samecap) + " avaliações / tempo médio: " + str(round(self.t_samecap / self.i_samecap, 4)) + " s")
-        print("Corpo tampo: " + str(round(self.t_wallcap, 3)) +
-              " em " + str(self.i_wallcap) + " avaliações / tempo médio: " + str(round(self.t_wallcap / self.i_wallcap, 4)) + " s")
-        print("Tampo tampo: " + str(round(self.t_captocap, 3)) +
-              " em " + str(self.i_captocap) + " avaliações / tempo médio: " + str(round(self.t_captocap / self.i_captocap, 4)) + " s")
-        print("Corpo: " + str(round(self.t_wall, 3)) +
-              " em " + str(self.i_wall) + " avaliações / tempo médio: " + str(round(self.t_wall / self.i_wall, 4)) + " s")
-        print("\n")
+
+        print(res)  # - Resultado da otimização
+
+        #self.__printTimes()
 
         return res.get("x")
 
