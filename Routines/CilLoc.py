@@ -11,6 +11,7 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from numba import jit
 
+
 class VesselPoint():
     """Classe para definir as propriedades de um ponto no vaso
     """
@@ -190,6 +191,7 @@ class CylindricalLocation():
         f = self.f
 
         if self.SectionMode == "reg":
+            """
             @jit(nopython=True)
             def RegArc(Ri, Rf, a, pol):
                 Ri = Ri / a
@@ -198,24 +200,30 @@ class CylindricalLocation():
                 si = 0
                 for coef in pol:
                     si += coef * Ri ** n
+                    n += 1
 
                 n = 0
                 sf = 0
                 for coef in pol:
                     sf += coef * Rf ** n
+                    n += 1
 
-                """
-                si = np.polyval(pol, Ri) * a
-                sf = np.polyval(pol, Rf) * a
-                """
                 s = sf - si
 
                 return s
+            """
 
             pol = [9.94406631e-01, -5.42331127e-13, -1.67276958e+00,  9.30333908e-13,
                    9.92271096e-01, -4.52365676e-13, -1.60763495e-01,  8.69627507e-14,
                    1.01106572e+00,  1.21105713e+00]
+            """
             s = RegArc(Ri, Rf, a, pol)
+            """
+            Ri = Ri / a
+            Rf = Rf / a
+            si = np.polyval(pol, Ri) * a
+            sf = np.polyval(pol, Rf) * a
+            s = sf - si
 
         elif self.SectionMode == "inc":
             s = 0
@@ -345,21 +353,39 @@ class CylindricalLocation():
             self.i_wallcap += 1
         else:  # Distância entre pontos no casco
             t0 = time.time()
-            dist1 = np.sqrt((P1.Xcord - P2.Xcord) **
-                           2 + (P1.Ycord - P2.Ycord)**2)
-            # Clone à direita
-            dist2 = np.sqrt((P1.Xcord - P2.Xcord + self.diameter *
-                            m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
-            # Clone à esquerda
-            dist3 = np.sqrt((P1.Xcord - P2.Xcord - self.diameter *
-                            m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
-
-            dist = np.min([dist1, dist2, dist3])
-
+            dist = self.__DistWall(P1, P2)
             t1 = time.time()
             self.t_wall += t1 - t0
             self.i_wall += 1
 
+        return dist
+
+    def __DistWall(self, P1, P2):
+        x1 = P1.Xcord
+        y1 = P1.Ycord
+        x2 = P2.Xcord
+        y2 = P2.Ycord
+        d = self.diameter
+
+        @jit(nopython=False)
+        def func(x1, y1, x2, y2, d):
+            dist1 = np.sqrt((x1 - x2) ** 2 + (y1 - y2)**2)
+            # Clone à direita
+            dist2 = np.sqrt((x1 - x2 + d * m.pi) ** 2 + (y1 - y2)**2)
+            # Clone à esquerda
+            dist3 = np.sqrt((x1 - x2 - d * m.pi) ** 2 + (y1 - y2)**2)
+
+            if dist1 < dist2:
+                dist = dist1
+            else:
+                dist = dist2
+
+            if dist3 < dist:
+                dist = dist3
+
+            return dist
+
+        dist = func(x1, y1, x2, y2, d)
         return dist
 
     def __DistSameCap(self, P1, P2):
@@ -468,8 +494,10 @@ class CylindricalLocation():
             totalDist = dist1 + dist2
             return totalDist
 
-        InitGuess = opt.brute(CalcWallToCap, ((0, m.pi * self.diameter),), Ns=6)
-        FinalSearch = opt.minimize(CalcWallToCap, x0=InitGuess, method="BFGS", options={'maxiter': 5})
+        InitGuess = opt.brute(
+            CalcWallToCap, ((0, m.pi * self.diameter),), Ns=6)
+        FinalSearch = opt.minimize(
+            CalcWallToCap, x0=InitGuess, method="BFGS", options={'maxiter': 5})
         # print(FinalSearch) -- Resultado da minimização
         dist = FinalSearch.get("fun")
 
@@ -525,10 +553,12 @@ class CylindricalLocation():
         dx = np.min([dx1, dx2, dx3])
         dy = Sensor.Ycord - Source.Ycord
         d = np.sqrt(dx**2 + dy**2)
-        capDistance = dx * self.SemiPerimeter / (m.pi * self.diameter) # É apenas uma aproximação, tem como calcular melhor esse valor
+        # É apenas uma aproximação, tem como calcular melhor esse valor
+        capDistance = dx * self.SemiPerimeter / (m.pi * self.diameter)
 
         case1 = (Source.Ycord + Sensor.Ycord + capDistance) <= d
-        case2 = (2 * self.height - Source.Ycord + Sensor.Ycord + capDistance) <= d
+        case2 = (2 * self.height - Source.Ycord +
+                 Sensor.Ycord + capDistance) <= d
         Cond1 = case1 or case2
         Cond2 = not (Source.OnCap or Sensor.OnCap)
         if Cond1 and Cond2:
@@ -687,6 +717,7 @@ class CylindricalLocation():
 
         print("\n")
 
+    @jit(parallel=True)
     def calcAllDist(self, SourceX, SourceY, IDs):
         """
         # Inicialização dos tempos acumulados de cálculo de distâncias  - medição de performance
@@ -778,7 +809,7 @@ class CylindricalLocation():
 
         NPdist = np.array(distances)
         times = (NPdist - NPdist[0]) / self.veloc
-        
+
         return times
 
     def __orderMembers(self, TimesToSensors):
@@ -857,9 +888,9 @@ class CylindricalLocation():
 
     def completeLocation(self, TimesToSensors):
         # Inicialização dos tempos acumulados
-        #self.__initializeTimes()
+        self.__initializeTimes()
 
-        #x0 = self.__InitialKick(TimesToSensors)
+        x0 = self.__InitialKick(TimesToSensors)
 
         data = self.__orderMembers(TimesToSensors)
         (firstID, t0) = data[0]
@@ -895,10 +926,9 @@ class CylindricalLocation():
         res = opt.differential_evolution(
             CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish)
 
-
         print(res)  # - Resultado da otimização
 
-        #self.__printTimes()
+        self.__printTimes()
 
         return res.get("x")
 
