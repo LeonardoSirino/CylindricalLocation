@@ -9,7 +9,6 @@ import time
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-from numba import jit
 
 
 class VesselPoint():
@@ -191,40 +190,14 @@ class CylindricalLocation():
         f = self.f
 
         if self.SectionMode == "reg":
-            """
-            @jit(nopython=True)
-            def RegArc(Ri, Rf, a, pol):
-                Ri = Ri / a
-                Rf = Rf / a
-                n = 0
-                si = 0
-                for coef in pol:
-                    si += coef * Ri ** n
-                    n += 1
-
-                n = 0
-                sf = 0
-                for coef in pol:
-                    sf += coef * Rf ** n
-                    n += 1
-
-                s = sf - si
-
-                return s
-            """
-
+            Ri = Ri / a
+            Rf = Rf / a
             pol = [9.94406631e-01, -5.42331127e-13, -1.67276958e+00,  9.30333908e-13,
                    9.92271096e-01, -4.52365676e-13, -1.60763495e-01,  8.69627507e-14,
                    1.01106572e+00,  1.21105713e+00]
-            """
-            s = RegArc(Ri, Rf, a, pol)
-            """
-            Ri = Ri / a
-            Rf = Rf / a
             si = np.polyval(pol, Ri) * a
             sf = np.polyval(pol, Rf) * a
             s = sf - si
-
         elif self.SectionMode == "inc":
             s = 0
             z1 = a * f * m.sqrt(1 - Ri**2 / a**2)
@@ -353,39 +326,21 @@ class CylindricalLocation():
             self.i_wallcap += 1
         else:  # Distância entre pontos no casco
             t0 = time.time()
-            dist = self.__DistWall(P1, P2)
+            dist1 = np.sqrt((P1.Xcord - P2.Xcord) **
+                            2 + (P1.Ycord - P2.Ycord)**2)
+            # Clone à direita
+            dist2 = np.sqrt((P1.Xcord - P2.Xcord + self.diameter *
+                             m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
+            # Clone à esquerda
+            dist3 = np.sqrt((P1.Xcord - P2.Xcord - self.diameter *
+                             m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
+
+            dist = np.min([dist1, dist2, dist3])
+
             t1 = time.time()
             self.t_wall += t1 - t0
             self.i_wall += 1
 
-        return dist
-
-    def __DistWall(self, P1, P2):
-        x1 = P1.Xcord
-        y1 = P1.Ycord
-        x2 = P2.Xcord
-        y2 = P2.Ycord
-        d = self.diameter
-
-        @jit(nopython=False)
-        def func(x1, y1, x2, y2, d):
-            dist1 = np.sqrt((x1 - x2) ** 2 + (y1 - y2)**2)
-            # Clone à direita
-            dist2 = np.sqrt((x1 - x2 + d * m.pi) ** 2 + (y1 - y2)**2)
-            # Clone à esquerda
-            dist3 = np.sqrt((x1 - x2 - d * m.pi) ** 2 + (y1 - y2)**2)
-
-            if dist1 < dist2:
-                dist = dist1
-            else:
-                dist = dist2
-
-            if dist3 < dist:
-                dist = dist3
-
-            return dist
-
-        dist = func(x1, y1, x2, y2, d)
         return dist
 
     def __DistSameCap(self, P1, P2):
@@ -545,7 +500,6 @@ class CylindricalLocation():
         return dist
 
     def __DistVClone(self, Source, Sensor):
-        # Mudar o calculo para uma condição simplificada, assumindo que o caminho da onda é vertical até a interface, dessa forma não haverá minimização envolvida
         SemiHeight = self.height / 2
         dx1 = abs(Source.Xcord - Sensor.Xcord)
         dx2 = abs(Source.Xcord - Sensor.Xcord + m.pi * self.diameter)
@@ -567,45 +521,18 @@ class CylindricalLocation():
             else:
                 YAuxCord = 0
 
-            AuxPoint1 = VesselPoint(0, YAuxCord, -2)
-            AuxPoint2 = VesselPoint(0, YAuxCord, -2)
-            self.__GenPlot = False  # Desabilitando temporariamente os gráficos para melhor desempenho
-
-            def CalcVerticalClone(Xaux):
-                """Função auxiliar a distância entre dois pontos no casco, mas de forma que o caminho passe pelo tampo.
-
-                Arguments:
-                Xaux {[float array]} -- [vetor com as coordenadas x dos pontos auxiliares]
-
-                Returns:
-                    [dist] -- [distância calculada]
-                """
-
-                AuxPoint1.SetXcord(Xaux[0])
-                AuxPoint2.SetXcord(Xaux[1])
-                self.__AuxCoords(AuxPoint1)
-                self.__AuxCoords(AuxPoint2)
-                AuxPoint1.SetOnCap(False)
-                dist1 = self.__calcDist(Source, AuxPoint1)
-                AuxPoint1.SetOnCap(True)
-                AuxPoint2.SetOnCap(True)
-                dist2 = self.__calcDist(AuxPoint1, AuxPoint2)
-                AuxPoint2.SetOnCap(False)
-                dist3 = self.__calcDist(AuxPoint2, Sensor)
-                totalDist = dist1 + dist2 + dist3
-                return totalDist
-
-            SearchRange = (0, self.diameter * m.pi)
-            InitGuess = opt.brute(
-                CalcVerticalClone, (SearchRange, SearchRange), Ns=6)
-            FinalSearch = opt.minimize(
-                CalcVerticalClone, x0=InitGuess, method="BFGS")
-            # print(FinalSearch) -- Resultado da minimização
-            dist = FinalSearch.get("fun")
-            MinPos1 = FinalSearch.get("x")[0]
-            MinPos2 = FinalSearch.get("x")[1]
-            AuxPoint1.SetXcord(MinPos1)
-            AuxPoint2.SetXcord(MinPos2)
+            AuxPoint1 = VesselPoint(Source.Xcord, YAuxCord, -2)
+            AuxPoint2 = VesselPoint(Sensor.Xcord, YAuxCord, -2)
+            self.__AuxCoords(AuxPoint1)
+            self.__AuxCoords(AuxPoint2)
+            AuxPoint1.SetOnCap(False)
+            dist1 = self.__calcDist(Source, AuxPoint1)
+            AuxPoint1.SetOnCap(True)
+            AuxPoint2.SetOnCap(True)
+            dist2 = self.__calcDist(AuxPoint1, AuxPoint2)
+            AuxPoint2.SetOnCap(False)
+            dist3 = self.__calcDist(AuxPoint2, Sensor)
+            dist = dist1 + dist2 + dist3
 
         else:
             dist = -1
@@ -717,7 +644,6 @@ class CylindricalLocation():
 
         print("\n")
 
-    @jit(parallel=True)
     def calcAllDist(self, SourceX, SourceY, IDs):
         """
         # Inicialização dos tempos acumulados de cálculo de distâncias  - medição de performance
@@ -737,12 +663,15 @@ class CylindricalLocation():
 
             distDirect = self.__calcDist(Source, sensor)
             distVClone = -1
-            #distVClone = self.__DistVClone(Source, sensor)
+            distVClone = self.__DistVClone(Source, sensor)
             if distVClone == -1:
                 distVClone = distDirect * 10
             else:
+                """
                 print("Distância direta: " + str(distDirect))
                 print("Clone vertical :" + str(distVClone))
+                print("\n")
+                """
 
             Distances = [distDirect, distVClone]
             MinDistances[i] = np.min(Distances)
@@ -888,9 +817,9 @@ class CylindricalLocation():
 
     def completeLocation(self, TimesToSensors):
         # Inicialização dos tempos acumulados
-        self.__initializeTimes()
+        # self.__initializeTimes()
 
-        x0 = self.__InitialKick(TimesToSensors)
+        #x0 = self.__InitialKick(TimesToSensors)
 
         data = self.__orderMembers(TimesToSensors)
         (firstID, t0) = data[0]
@@ -923,12 +852,11 @@ class CylindricalLocation():
         res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 1E-4}, bounds=bounds)
         """
 
-        res = opt.differential_evolution(
-            CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish)
+        res = opt.differential_evolution(CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish)
 
-        print(res)  # - Resultado da otimização
+        # print(res)  # - Resultado da otimização
 
-        self.__printTimes()
+        # self.__printTimes()
 
         return res.get("x")
 

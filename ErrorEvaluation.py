@@ -33,7 +33,7 @@ for sensor in Locate.SensorList:
 
 # Pontos de teste
 xdivs = 5
-ydivs = 7
+ydivs = 10
 x_array = np.linspace(diameter * m.pi * 0.05, diameter * m.pi * 0.95, num=xdivs)
 y_array = np.linspace(-semiperimeter * 0.95, 0.95 *
                       (height + semiperimeter), num=ydivs)
