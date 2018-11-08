@@ -6,9 +6,34 @@ import numpy as np
 import copy
 import time
 
+from numba import jit
+
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
+
+class fastCalc():
+    def __init__(self):
+        pass
+
+    @jit(parallel=True)
+    def wallDist(self, x1, y1, x2, y2, d):
+        dist1 = np.sqrt((x1 - x2) ** 2 + (y1 - y2)**2)
+        # Clone à direita
+        dist2 = np.sqrt((x1 - x2 + d * m.pi) ** 2 + (y1 - y2)**2)
+        # Clone à esquerda
+        dist3 = np.sqrt((x1 - x2 - d * m.pi) ** 2 + (y1 -y2)**2)
+
+        if dist1 < dist2:
+            dist = dist1
+        else:
+            dist = dist2
+
+        if dist3 < dist:
+            dist = dist3
+        
+        print(dist)
+        return dist
 
 
 class VesselPoint():
@@ -70,6 +95,8 @@ class CylindricalLocation():
         """
         self.__ellipseDivs = 500
         self.__DivsTolerance = 100
+        self.numba = True
+        self.fastCalc = fastCalc()
 
         # Inicialização dos tempos acumulados
         self.t_samecap = 0
@@ -326,16 +353,25 @@ class CylindricalLocation():
             self.i_wallcap += 1
         else:  # Distância entre pontos no casco
             t0 = time.time()
-            dist1 = np.sqrt((P1.Xcord - P2.Xcord) **
-                            2 + (P1.Ycord - P2.Ycord)**2)
-            # Clone à direita
-            dist2 = np.sqrt((P1.Xcord - P2.Xcord + self.diameter *
-                             m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
-            # Clone à esquerda
-            dist3 = np.sqrt((P1.Xcord - P2.Xcord - self.diameter *
-                             m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
+            if self.numba:
+                x1 = P1.Xcord
+                x2 = P2.Xcord
+                y1 = P1.Ycord
+                y2 = P2.Ycord
+                d = self.diameter
+                dist = self.fastCalc.wallDist(x1, x2, y1, y2, d)
 
-            dist = np.min([dist1, dist2, dist3])
+            else:
+                dist1 = np.sqrt((P1.Xcord - P2.Xcord) **
+                                2 + (P1.Ycord - P2.Ycord)**2)
+                # Clone à direita
+                dist2 = np.sqrt((P1.Xcord - P2.Xcord + self.diameter *
+                                m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
+                # Clone à esquerda
+                dist3 = np.sqrt((P1.Xcord - P2.Xcord - self.diameter *
+                                m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
+
+                dist = np.min([dist1, dist2, dist3])
 
             t1 = time.time()
             self.t_wall += t1 - t0
