@@ -12,28 +12,23 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
-class fastCalc():
-    def __init__(self):
-        pass
+@jit(nopython=True)
+def wallDist(x1, y1, x2, y2, d):
+    dist1 = np.sqrt((x1 - x2) ** 2 + (y1 - y2)**2)
+    # Clone à direita
+    dist2 = np.sqrt((x1 - x2 + d * m.pi) ** 2 + (y1 - y2)**2)
+    # Clone à esquerda
+    dist3 = np.sqrt((x1 - x2 - d * m.pi) ** 2 + (y1 -y2)**2)
 
-    @jit(parallel=True)
-    def wallDist(self, x1, y1, x2, y2, d):
-        dist1 = np.sqrt((x1 - x2) ** 2 + (y1 - y2)**2)
-        # Clone à direita
-        dist2 = np.sqrt((x1 - x2 + d * m.pi) ** 2 + (y1 - y2)**2)
-        # Clone à esquerda
-        dist3 = np.sqrt((x1 - x2 - d * m.pi) ** 2 + (y1 -y2)**2)
+    if dist1 < dist2:
+        dist = dist1
+    else:
+        dist = dist2
 
-        if dist1 < dist2:
-            dist = dist1
-        else:
-            dist = dist2
-
-        if dist3 < dist:
-            dist = dist3
-        
-        print(dist)
-        return dist
+    if dist3 < dist:
+        dist = dist3
+    
+    return dist
 
 
 class VesselPoint():
@@ -44,6 +39,14 @@ class VesselPoint():
         self.Xcord = Xcord
         self.Ycord = Ycord
         self.ID = ID
+
+        """
+        if type(Xcord) is not float and type(Xcord) is not np.float64:
+            print("Erro! ID: " + str(ID))
+            print(Xcord)
+            print(type(Xcord))
+            print("\n")
+        """
 
     def SetXcord(self, Xcord):
         self.Xcord = Xcord
@@ -96,7 +99,6 @@ class CylindricalLocation():
         self.__ellipseDivs = 500
         self.__DivsTolerance = 100
         self.numba = True
-        self.fastCalc = fastCalc()
 
         # Inicialização dos tempos acumulados
         self.t_samecap = 0
@@ -354,12 +356,13 @@ class CylindricalLocation():
         else:  # Distância entre pontos no casco
             t0 = time.time()
             if self.numba:
-                x1 = P1.Xcord
-                x2 = P2.Xcord
-                y1 = P1.Ycord
-                y2 = P2.Ycord
-                d = self.diameter
-                dist = self.fastCalc.wallDist(x1, x2, y1, y2, d)
+                # Identificar onde as coordenadas estão sendo definidas como vetores
+                x1 = float(P1.Xcord)
+                x2 = float(P2.Xcord)
+                y1 = float(P1.Ycord)
+                y2 = float(P2.Ycord)
+                d = float(self.diameter)
+                dist = wallDist(x1, x2, y1, y2, d)
 
             else:
                 dist1 = np.sqrt((P1.Xcord - P2.Xcord) **
@@ -446,7 +449,7 @@ class CylindricalLocation():
         else:
             Yaux = 0
 
-        AuxPoint = VesselPoint(0, Yaux, -2)
+        AuxPoint = VesselPoint(0.0, Yaux, -2)
 
         def CalcWallToCap(Xaux):
             """[Função para cálculo de distância entre um ponto no casco e outro no tampo]
@@ -495,8 +498,8 @@ class CylindricalLocation():
         return dist
 
     def __DistCaptoCap(self, Psup, Pinf):
-        AuxPoint1 = VesselPoint(0, self.height, -2)
-        AuxPoint2 = VesselPoint(0, 0, -2)
+        AuxPoint1 = VesselPoint(0.0, self.height, -2)
+        AuxPoint2 = VesselPoint(0.0, 0.0, -2)
 
         def CalcCaptoCap(Xaux):
             """[Função para calcular a distância entre pontos em tampos opostos]
@@ -729,6 +732,28 @@ class CylindricalLocation():
         self.__removeSensors(IDs)
         distances = []
         for sensor in self.SensorList:
+            P1 = sensor
+            if self.numba:
+                # Identificar onde as coordenadas estão sendo definidas como vetores
+                x1 = float(P1.Xcord)
+                x2 = x
+                y1 = float(P1.Ycord)
+                y2 = y
+                d = float(self.diameter)
+                dist = wallDist(x1, x2, y1, y2, d)
+
+            else:
+                dist1 = np.sqrt((P1.Xcord - x) ** 2 + (P1.Ycord - y)**2)
+                # Clone à direita
+                dist2 = np.sqrt((P1.Xcord - x + self.diameter * m.pi) ** 2 + (P1.Ycord - y)**2)
+                # Clone à esquerda
+                dist3 = np.sqrt((P1.Xcord - x - self.diameter * m.pi) ** 2 + (P1.Ycord - y)**2)
+
+                dist = np.min([dist1, dist2, dist3])
+
+            distances.append(dist)
+
+            """
             dist1 = np.sqrt((x - sensor.Xcord)**2 + (y - sensor.Ycord)**2)
             dist2 = np.sqrt((x - sensor.Xcord + self.diameter *
                              m.pi)**2 + (y - sensor.Ycord)**2)
@@ -736,6 +761,7 @@ class CylindricalLocation():
                              m.pi)**2 + (y - sensor.Ycord)**2)
             minDist = np.min([dist1, dist2, dist3])
             distances.append(minDist)
+            """
 
         self.__returnSensors()
         return distances
