@@ -24,8 +24,8 @@ Locate.StructuredSensorDistribution(lines=1, sensorsInLine=2, x0=(
     diameter * m.pi) / 4, y0=height + semiperimeter / 2, dx=(diameter * m.pi) / 2, dy=0, aligned=False)
 
 # Ponto de teste
-xp = diameter * m.pi * 0.7
-yp = 990
+xp = diameter * m.pi * 0.5
+yp = 800
 
 t = Locate.returnDeltaT(xp, yp, [-1], 'geodesic')
 data = []

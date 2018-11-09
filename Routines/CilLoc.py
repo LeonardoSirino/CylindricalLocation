@@ -6,30 +6,7 @@ import numpy as np
 import copy
 import time
 
-from numba import jit
-
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
-
-@jit(nopython=True)
-def wallDist(x1, y1, x2, y2, d):
-    dist1 = np.sqrt((x1 - x2) ** 2 + (y1 - y2)**2)
-    # Clone à direita
-    dist2 = np.sqrt((x1 - x2 + d * m.pi) ** 2 + (y1 - y2)**2)
-    # Clone à esquerda
-    dist3 = np.sqrt((x1 - x2 - d * m.pi) ** 2 + (y1 -y2)**2)
-
-    if dist1 < dist2:
-        dist = dist1
-    else:
-        dist = dist2
-
-    if dist3 < dist:
-        dist = dist3
-    
-    return dist
-
+from Routines.fastCalc import *
 
 class VesselPoint():
     """Classe para definir as propriedades de um ponto no vaso
@@ -362,7 +339,7 @@ class CylindricalLocation():
                 y1 = float(P1.Ycord)
                 y2 = float(P2.Ycord)
                 d = float(self.diameter)
-                dist = wallDist(x1, x2, y1, y2, d)
+                dist = wallDist(x1, y1, x2, y2, d)
 
             else:
                 dist1 = np.sqrt((P1.Xcord - P2.Xcord) **
@@ -921,52 +898,3 @@ class CylindricalLocation():
         # self.__printTimes()
 
         return res.get("x")
-
-    def fCostMap(self, TimesToSensors):
-        data = self.__orderMembers(TimesToSensors)
-        IDs = []
-        MeasTimes = []
-
-        for member in data:
-            (ID, time) = member
-            IDs.append(ID)
-            MeasTimes.append(time)
-
-        MeasTimes = np.array(MeasTimes)
-
-        def CalcResidue(x):
-            tcalc = self.returnDeltaT(x[0], x[1], IDs, 'original')
-            tcalc = np.array(tcalc)
-            residue = np.sqrt(np.sum((tcalc - MeasTimes)**2))
-            return residue
-
-        N = 20
-        """
-        x_array = np.linspace(0, self.diameter * m.pi, num=N)
-        y_array = np.linspace(-self.SemiPerimeter,
-                              self.height + self.SemiPerimeter, num=N)
-        """
-
-        x_array = np.linspace(0, self.diameter * m.pi, num=N)
-        y_array = np.linspace(self.height * 0, self.height +
-                              self.SemiPerimeter * 0, num=N)
-
-        map = np.zeros((N, N))
-        i = 0
-        for x in x_array:
-            j = 0
-            for y in y_array:
-                map[i, j] = CalcResidue([x, y])
-                print("i: " + str(i) + " - j: " + str(j))
-                j += 1
-            i += 1
-
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-
-        x_array, y_array = np.meshgrid(x_array, y_array)
-
-        surf = ax.plot_surface(x_array, y_array, map, cmap=cm.coolwarm,
-                               linewidth=0, antialiased=False)
-
-        plt.show()
