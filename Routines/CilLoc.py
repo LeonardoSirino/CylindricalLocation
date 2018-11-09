@@ -88,6 +88,7 @@ class CylindricalLocation():
         self.i_wall = 0
         self.i_captocap = 0
 
+    ### Setters & getters
     def setCalcMode(self, mode):
         self.CalcMode = mode
         """Modos:
@@ -135,11 +136,67 @@ class CylindricalLocation():
         "Definição da velocidade em mm/s"
         self.veloc = velocity
 
+    # Periféricos
     def PrintAllSensors(self):
         print("Sensores originais:")
         for sensor in self.SensorList:
             print(sensor)
 
+    def FindFurthestPoint(self):
+        # Revisar este função
+        def CalcDistRemotePoint(x):
+            distances = self.calcAllDist(SourceX=x[0], SourceY=x[1], IDs=[-1])
+            return np.min(distances)
+
+        def CallBack(xk):
+            print(xk)
+            maxDist = CalcDistRemotePoint(xk)
+            print("Max distance: " + str(maxDist))
+
+        BruteRes = opt.brute(lambda x: -CalcDistRemotePoint(x), ranges=[(
+            0, self.diameter * m.pi), (-self.SemiPerimeter, self.height + self.SemiPerimeter)], Ns=5)
+        # print(BruteRes)
+        res = opt.minimize(lambda x: -CalcDistRemotePoint(x), method='L-BFGS-B', bounds=[(
+            0, self.diameter * m.pi), (-self.SemiPerimeter, self.height + self.SemiPerimeter)], x0=BruteRes, callback=CallBack, options={'maxfun': 200, 'ftol': 0.0000001})
+
+        return res.get('x')
+
+    def __initializeTimes(self):
+        self.t_samecap = 0
+        self.t_wallcap = 0
+        self.t_wall = 0
+        self.t_captocap = 0
+        self.i_samecap = 0
+        self.i_wallcap = 0
+        self.i_wall = 0
+        self.i_captocap = 0
+
+    def __printTimes(self):
+        print("\nTempos de cada modo de cálculo de distâncias")
+        try:
+            print("Mesmo tampo: " + str(round(self.t_samecap, 3)) +
+                  " em " + str(self.i_samecap) + " avaliações / tempo médio: " + str(round(self.t_samecap / self.i_samecap, 4)) + " s")
+        except:
+            pass
+        try:
+            print("Corpo tampo: " + str(round(self.t_wallcap, 3)) +
+                  " em " + str(self.i_wallcap) + " avaliações / tempo médio: " + str(round(self.t_wallcap / self.i_wallcap, 4)) + " s")
+        except:
+            pass
+        try:
+            print("Tampo tampo: " + str(round(self.t_captocap, 3)) +
+                  " em " + str(self.i_captocap) + " avaliações / tempo médio: " + str(round(self.t_captocap / self.i_captocap, 4)) + " s")
+        except:
+            pass
+        try:
+            print("Corpo: " + str(round(self.t_wall, 3)) +
+                  " em " + str(self.i_wall) + " avaliações / tempo médio: " + str(round(self.t_wall / self.i_wall, 4)) + " s")
+        except:
+            pass
+
+        print("\n")
+
+    # Auxiliares
     def __getSensorbyID(self, ID):
         for sensor in self.SensorList:
             if sensor.ID == ID:
@@ -147,6 +204,126 @@ class CylindricalLocation():
 
         return None
 
+    def __AuxCoords(self, Coords):
+        """
+        Função para calcular as coordenadas auxliares (latitude e longitude) quando a coordenada estiver no tampo
+        """
+        if Coords.Ycord >= self.height or Coords.Ycord <= 0:
+            if self.CalcMode == 'geodesic':
+                """Calculo de variáveis auxiliares necessárias para o uso da geodésicas
+                """
+
+                lon = Coords.Xcord / (self.diameter * m.pi) * 360 - 180
+                if Coords.Ycord >= self.height:
+                    Coords.SetCap("sup")
+                    s12 = Coords.Ycord - self.height
+                else:
+                    s12 = abs(Coords.Ycord)
+                    Coords.SetCap("inf")
+
+                EndCap = self.cap.Direct(lat1=0, lon1=lon, s12=s12, azi1=0)
+                lat = EndCap.get("lat2")
+                Coords.SetLat(lat)
+                Coords.SetLon(lon)
+            elif self.CalcMode == 'section':
+                """Cálculo de variáveis auxiliares para o uso do seccionamento do tampo
+                """
+                lon = Coords.Xcord / (self.diameter * m.pi) * 2 * m.pi - m.pi
+                if Coords.Ycord >= self.height:
+                    Coords.SetCap("sup")
+                    s = Coords.Ycord - self.height
+                else:
+                    s = abs(Coords.Ycord)
+                    Coords.SetCap("inf")
+
+                (R, z) = self.__sectionPos(s)
+                R = abs(R)
+
+                Coords.Xcap = R * m.cos(lon)
+                Coords.Ycap = R * m.sin(lon)
+                Coords.Zcap = z
+                """
+                print("Coordenada auxiliar tampo X: " + str(Coords.Xcap))
+                print("Coordenada auxiliar tampo Y: " + str(Coords.Ycap))
+                print("Coordenada auxiliar tampo Z: " + str(Coords.Zcap))
+                """
+            else:
+                print("Modo inválido")
+
+            Coords.SetOnCap(True)
+        else:
+            Coords.SetOnCap(False)
+
+    def __AllSensorsAuxCoords(self):
+        for sensor in self.SensorList:
+            self.__AuxCoords(sensor)
+
+    def AddSensor(self, Xcord, Ycord):
+        # Conditions
+        C1 = Xcord >= 0 and Xcord <= self.diameter * m.pi
+        C2 = Ycord > - self.SemiPerimeter * \
+            1.01 and Ycord < (self.height + self.SemiPerimeter) * 1.01
+        if C1 and C2:
+            self.__SensorID += 1
+            ID = self.__SensorID
+            SensorCoords = VesselPoint(Xcord, Ycord, ID)
+            self.__AuxCoords(SensorCoords)
+            self.SensorList.append(SensorCoords)
+        else:
+            print("As coordenadas deste ponto estão fora do vaso")
+
+    def StructuredSensorDistribution(self, lines, sensorsInLine, x0, y0, dx, dy, aligned):
+        for i in range(0, lines):
+            if not aligned and (-1)**(i + 1) == 1:
+                x1 = x0 + dx / 2
+            else:
+                x1 = x0
+            y1 = y0 + i * dy
+            for j in range(0, sensorsInLine):
+                x = x1 + j * dx
+                y = y1
+                self.AddSensor(Xcord=x, Ycord=y)
+
+    def __removeSensors(self, IDs):
+        # Remove os sensores que não estão na lista de IDs
+        if IDs == [-1]:
+            pass
+        else:
+            ValidSensors = []
+            InvalidSensors = []
+            for sensor in self.SensorList:
+                try:
+                    IDs.index(sensor.ID)
+                    ValidSensors.append(sensor)
+                except:
+                    InvalidSensors.append(sensor)
+
+            self.SensorList = ValidSensors
+            self.__tempSensorList = InvalidSensors
+
+    def __returnSensors(self):
+        # Os sensores sempre voltam ordenados às suas posições
+        if not self.__tempSensorList == None:
+            temp = self.SensorList + self.__tempSensorList
+            self.SensorList = [None] * len(temp)
+            for sensor in temp:
+                self.SensorList[sensor.ID] = sensor
+
+    def __orderMembers(self, TimesToSensors):
+        type = [('ID', int), ('time', float)]
+        data = np.array(TimesToSensors, dtype=type)
+        OrderedMembers = np.sort(data, order='ID')
+
+        return OrderedMembers
+
+    def __orderByTime(self, TimesToSensors):
+        dtype = [("ID", int), ("time", float)]
+        NPtimes = np.array(TimesToSensors, dtype=dtype)
+        NPtimes = np.sort(NPtimes, order="time")
+
+        return NPtimes
+
+    # Seccionamento
     def __sectionPos(self, s):
         if self.SectionMode == "reg":
             a = self.diameter / 2
@@ -260,60 +437,7 @@ class CylindricalLocation():
 
         return redF, d
 
-    def __AuxCoords(self, Coords):
-        """
-        Função para calcular as coordenadas auxliares (latitude e longitude) quando a coordenada estiver no tampo
-        """
-        if Coords.Ycord >= self.height or Coords.Ycord <= 0:
-            if self.CalcMode == 'geodesic':
-                """Calculo de variáveis auxiliares necessárias para o uso da geodésicas
-                """
-
-                lon = Coords.Xcord / (self.diameter * m.pi) * 360 - 180
-                if Coords.Ycord >= self.height:
-                    Coords.SetCap("sup")
-                    s12 = Coords.Ycord - self.height
-                else:
-                    s12 = abs(Coords.Ycord)
-                    Coords.SetCap("inf")
-
-                EndCap = self.cap.Direct(lat1=0, lon1=lon, s12=s12, azi1=0)
-                lat = EndCap.get("lat2")
-                Coords.SetLat(lat)
-                Coords.SetLon(lon)
-            elif self.CalcMode == 'section':
-                """Cálculo de variáveis auxiliares para o uso do seccionamento do tampo
-                """
-                lon = Coords.Xcord / (self.diameter * m.pi) * 2 * m.pi - m.pi
-                if Coords.Ycord >= self.height:
-                    Coords.SetCap("sup")
-                    s = Coords.Ycord - self.height
-                else:
-                    s = abs(Coords.Ycord)
-                    Coords.SetCap("inf")
-
-                (R, z) = self.__sectionPos(s)
-                R = abs(R)
-
-                Coords.Xcap = R * m.cos(lon)
-                Coords.Ycap = R * m.sin(lon)
-                Coords.Zcap = z
-                """
-                print("Coordenada auxiliar tampo X: " + str(Coords.Xcap))
-                print("Coordenada auxiliar tampo Y: " + str(Coords.Ycap))
-                print("Coordenada auxiliar tampo Z: " + str(Coords.Zcap))
-                """
-            else:
-                print("Modo inválido")
-
-            Coords.SetOnCap(True)
-        else:
-            Coords.SetOnCap(False)
-
-    def __AllSensorsAuxCoords(self):
-        for sensor in self.SensorList:
-            self.__AuxCoords(sensor)
-
+    # Distâncias e tempos
     def __calcDist(self, P1, P2):
         """
         Função para calcular distância entre dois pontos em posições quaisquer do vaso
@@ -569,111 +693,6 @@ class CylindricalLocation():
 
         return dist
 
-    def AddSensor(self, Xcord, Ycord):
-        # Conditions
-        C1 = Xcord >= 0 and Xcord <= self.diameter * m.pi
-        C2 = Ycord > - self.SemiPerimeter * \
-            1.01 and Ycord < (self.height + self.SemiPerimeter) * 1.01
-        if C1 and C2:
-            self.__SensorID += 1
-            ID = self.__SensorID
-            SensorCoords = VesselPoint(Xcord, Ycord, ID)
-            self.__AuxCoords(SensorCoords)
-            self.SensorList.append(SensorCoords)
-        else:
-            print("As coordenadas deste ponto estão fora do vaso")
-
-    def StructuredSensorDistribution(self, lines, sensorsInLine, x0, y0, dx, dy, aligned):
-        for i in range(0, lines):
-            if not aligned and (-1)**(i + 1) == 1:
-                x1 = x0 + dx / 2
-            else:
-                x1 = x0
-            y1 = y0 + i * dy
-            for j in range(0, sensorsInLine):
-                x = x1 + j * dx
-                y = y1
-                self.AddSensor(Xcord=x, Ycord=y)
-
-    def FindFurthestPoint(self):
-        # Revisar este função
-        def CalcDistRemotePoint(x):
-            distances = self.calcAllDist(SourceX=x[0], SourceY=x[1], IDs=[-1])
-            return np.min(distances)
-
-        def CallBack(xk):
-            print(xk)
-            maxDist = CalcDistRemotePoint(xk)
-            print("Max distance: " + str(maxDist))
-
-        BruteRes = opt.brute(lambda x: -CalcDistRemotePoint(x), ranges=[(
-            0, self.diameter * m.pi), (-self.SemiPerimeter, self.height + self.SemiPerimeter)], Ns=5)
-        # print(BruteRes)
-        res = opt.minimize(lambda x: -CalcDistRemotePoint(x), method='L-BFGS-B', bounds=[(
-            0, self.diameter * m.pi), (-self.SemiPerimeter, self.height + self.SemiPerimeter)], x0=BruteRes, callback=CallBack, options={'maxfun': 200, 'ftol': 0.0000001})
-
-        return res.get('x')
-
-    def __removeSensors(self, IDs):
-        # Remove os sensores que não estão na lista de IDs
-        if IDs == [-1]:
-            pass
-        else:
-            ValidSensors = []
-            InvalidSensors = []
-            for sensor in self.SensorList:
-                try:
-                    IDs.index(sensor.ID)
-                    ValidSensors.append(sensor)
-                except:
-                    InvalidSensors.append(sensor)
-
-            self.SensorList = ValidSensors
-            self.__tempSensorList = InvalidSensors
-
-    def __returnSensors(self):
-        # Os sensores sempre voltam ordenados às suas posições
-        if not self.__tempSensorList == None:
-            temp = self.SensorList + self.__tempSensorList
-            self.SensorList = [None] * len(temp)
-            for sensor in temp:
-                self.SensorList[sensor.ID] = sensor
-
-    def __initializeTimes(self):
-        self.t_samecap = 0
-        self.t_wallcap = 0
-        self.t_wall = 0
-        self.t_captocap = 0
-        self.i_samecap = 0
-        self.i_wallcap = 0
-        self.i_wall = 0
-        self.i_captocap = 0
-
-    def __printTimes(self):
-        print("\nTempos de cada modo de cálculo de distâncias")
-        try:
-            print("Mesmo tampo: " + str(round(self.t_samecap, 3)) +
-                  " em " + str(self.i_samecap) + " avaliações / tempo médio: " + str(round(self.t_samecap / self.i_samecap, 4)) + " s")
-        except:
-            pass
-        try:
-            print("Corpo tampo: " + str(round(self.t_wallcap, 3)) +
-                  " em " + str(self.i_wallcap) + " avaliações / tempo médio: " + str(round(self.t_wallcap / self.i_wallcap, 4)) + " s")
-        except:
-            pass
-        try:
-            print("Tampo tampo: " + str(round(self.t_captocap, 3)) +
-                  " em " + str(self.i_captocap) + " avaliações / tempo médio: " + str(round(self.t_captocap / self.i_captocap, 4)) + " s")
-        except:
-            pass
-        try:
-            print("Corpo: " + str(round(self.t_wall, 3)) +
-                  " em " + str(self.i_wall) + " avaliações / tempo médio: " + str(round(self.t_wall / self.i_wall, 4)) + " s")
-        except:
-            pass
-
-        print("\n")
-
     def calcAllDist(self, SourceX, SourceY, IDs):
         """
         # Inicialização dos tempos acumulados de cálculo de distâncias  - medição de performance
@@ -796,20 +815,7 @@ class CylindricalLocation():
 
         return times
 
-    def __orderMembers(self, TimesToSensors):
-        type = [('ID', int), ('time', float)]
-        data = np.array(TimesToSensors, dtype=type)
-        OrderedMembers = np.sort(data, order='ID')
-
-        return OrderedMembers
-
-    def __orderByTime(self, TimesToSensors):
-        dtype = [("ID", int), ("time", float)]
-        NPtimes = np.array(TimesToSensors, dtype=dtype)
-        NPtimes = np.sort(NPtimes, order="time")
-
-        return NPtimes
-
+    # Localização
     def __InitialKick(self, TimesToSensors):
         temp = self.__orderByTime(TimesToSensors)
         times = []
