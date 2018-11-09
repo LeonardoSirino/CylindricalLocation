@@ -506,41 +506,53 @@ class CylindricalLocation():
         elif self.CalcMode == 'section':
             redF, d = self.__reductionFactor(P1, P2)
             if redF != 0:
-                r1q = P1.Xcap**2 + P1.Ycap**2
-                try:
-                    u1 = m.sqrt(r1q - d**2)
-                except ValueError:
-                    if abs(r1q - d) < self.diameter / self.__DivsTolerance:
-                        u1 = 0
-                    else:
-                        u1 = np.nan
+                if False:
+                    # Método otimizado com o Numba
+                    x1 = float(P1.Xcap)
+                    x2 = float(P2.Xcap)
+                    y1 = float(P1.Ycap)
+                    y2 = float(P2.Ycap)
+                    diam = float(self.diameter)
+                    divs = float(self.__DivsTolerance)
+                    tol = diam / divs
+                    u1, u2 = distCap(redF, x1, y1, x2, y2, tol, d)
+                if True:
+                    # Método convencional - numpy
+                    r1q = P1.Xcap**2 + P1.Ycap**2
+                    try:
+                        u1 = m.sqrt(r1q - d**2)
+                    except ValueError:
+                        if abs(r1q - d) < self.diameter / self.__DivsTolerance:
+                            u1 = 0
+                        else:
+                            u1 = np.nan
 
-                r2q = P2.Xcap**2 + P2.Ycap**2
-                try:
-                    u2 = m.sqrt(r2q - d**2)
-                except ValueError:
-                    if abs(r2q - d) < self.diameter / self.__DivsTolerance:
-                        u2 = 0
-                    else:
-                        u2 = np.nan
+                    r2q = P2.Xcap**2 + P2.Ycap**2
+                    try:
+                        u2 = m.sqrt(r2q - d**2)
+                    except ValueError:
+                        if abs(r2q - d) < self.diameter / self.__DivsTolerance:
+                            u2 = 0
+                        else:
+                            u2 = np.nan
 
-                v1c = np.array([-P1.Xcap, -P1.Ycap])
-                v2c = np.array([-P2.Xcap, -P2.Ycap])
-                v12 = np.array([P2.Xcap - P1.Xcap, P2.Ycap - P1.Ycap])
+                    v1c = np.array([-P1.Xcap, -P1.Ycap])
+                    v2c = np.array([-P2.Xcap, -P2.Ycap])
+                    v12 = np.array([P2.Xcap - P1.Xcap, P2.Ycap - P1.Ycap])
 
-                cosTheta1 = np.dot(v1c, v12) / \
-                    (np.linalg.norm(v1c) * np.linalg.norm(v12))
+                    cosTheta1 = np.dot(v1c, v12) / \
+                        (np.linalg.norm(v1c) * np.linalg.norm(v12))
 
-                cosTheta2 = np.dot(v2c, v12) / \
-                    (np.linalg.norm(v2c) * np.linalg.norm(v12))
+                    cosTheta2 = np.dot(v2c, v12) / \
+                        (np.linalg.norm(v2c) * np.linalg.norm(v12))
 
-                if cosTheta1 <= 0:
-                    # Ponto está do outro lado do centro da elipse
-                    u1 = -u1
+                    if cosTheta1 <= 0:
+                        # Ponto está do outro lado do centro da elipse
+                        u1 = -u1
 
-                if cosTheta2 <= 0:
-                    # Ponto está do outro lado do centro da elipse
-                    u2 = -u2
+                    if cosTheta2 <= 0:
+                        # Ponto está do outro lado do centro da elipse
+                        u2 = -u2
 
                 a = redF * self.diameter / 2
                 dist = self.__sectionArc(a, u1, u2)
