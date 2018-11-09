@@ -8,6 +8,7 @@ import time
 
 from Routines.fastCalc import *
 
+
 class VesselPoint():
     """Classe para definir as propriedades de um ponto no vaso
     """
@@ -153,7 +154,13 @@ class CylindricalLocation():
             s = s / a
             pol = [-0.04520616,  0.38323073, -1.36785798,  2.66208137, -3.10204898,  2.24771868,
                    0.01275433, -1.00151578]
-            R = np.polyval(pol, s) * a
+            polF = [-1.00151578,  0.01275433,  2.24771868, -3.10204898,  2.66208137, -1.36785798,
+                    0.38323073, -0.04520616]
+            if self.numba:
+                y = sectionPos(s, polF)
+                R = y * a
+            else:
+                R = np.polyval(pol, s) * a
             try:
                 z = a * f * m.sqrt(1 - R**2 / a**2)
             except ValueError:
@@ -201,9 +208,16 @@ class CylindricalLocation():
             pol = [9.94406631e-01, -5.42331127e-13, -1.67276958e+00,  9.30333908e-13,
                    9.92271096e-01, -4.52365676e-13, -1.60763495e-01,  8.69627507e-14,
                    1.01106572e+00,  1.21105713e+00]
-            si = np.polyval(pol, Ri) * a
-            sf = np.polyval(pol, Rf) * a
-            s = sf - si
+            polF = [1.21105713e+00,  1.01106572e+00,  8.69627507e-14, -1.60763495e-01,
+                    -4.52365676e-13,  9.92271096e-01,  9.30333908e-13, -1.67276958e+00,
+                    -5.42331127e-13,  9.94406631e-01]
+            if self.numba:
+                y = sectionArc(Ri, Rf, polF)
+                s = y * a
+            else:
+                si = np.polyval(pol, Ri) * a
+                sf = np.polyval(pol, Rf) * a
+                s = sf - si
         elif self.SectionMode == "inc":
             s = 0
             z1 = a * f * m.sqrt(1 - Ri**2 / a**2)
@@ -346,10 +360,10 @@ class CylindricalLocation():
                                 2 + (P1.Ycord - P2.Ycord)**2)
                 # Clone à direita
                 dist2 = np.sqrt((P1.Xcord - P2.Xcord + self.diameter *
-                                m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
+                                 m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
                 # Clone à esquerda
                 dist3 = np.sqrt((P1.Xcord - P2.Xcord - self.diameter *
-                                m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
+                                 m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
 
                 dist = np.min([dist1, dist2, dist3])
 
@@ -722,9 +736,11 @@ class CylindricalLocation():
             else:
                 dist1 = np.sqrt((P1.Xcord - x) ** 2 + (P1.Ycord - y)**2)
                 # Clone à direita
-                dist2 = np.sqrt((P1.Xcord - x + self.diameter * m.pi) ** 2 + (P1.Ycord - y)**2)
+                dist2 = np.sqrt(
+                    (P1.Xcord - x + self.diameter * m.pi) ** 2 + (P1.Ycord - y)**2)
                 # Clone à esquerda
-                dist3 = np.sqrt((P1.Xcord - x - self.diameter * m.pi) ** 2 + (P1.Ycord - y)**2)
+                dist3 = np.sqrt(
+                    (P1.Xcord - x - self.diameter * m.pi) ** 2 + (P1.Ycord - y)**2)
 
                 dist = np.min([dist1, dist2, dist3])
 
@@ -891,7 +907,8 @@ class CylindricalLocation():
         res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 1E-4}, bounds=bounds)
         """
 
-        res = opt.differential_evolution(CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish)
+        res = opt.differential_evolution(
+            CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish)
 
         # print(res)  # - Resultado da otimização
 

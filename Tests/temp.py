@@ -1,7 +1,8 @@
-a = 0.0
+import numpy as np
 
-print(type(type(a)))
-print(str(type(a)))
+pol = [9.94406631e-01, -5.42331127e-13, -1.67276958e+00,  9.30333908e-13,
+                   9.92271096e-01, -4.52365676e-13, -1.60763495e-01,  8.69627507e-14,
+                   1.01106572e+00,  1.21105713e+00]
 
-cond = type(a) is float
-print(len(a))
+a = np.flip(pol, 0)
+print(a)
