@@ -76,7 +76,7 @@ class CylindricalLocation():
         """
         self.__ellipseDivs = 500
         self.__DivsTolerance = 100
-        self.numba = True
+        self.numba = False
 
         # Inicialização dos tempos acumulados
         self.t_samecap = 0
@@ -242,11 +242,7 @@ class CylindricalLocation():
                 Coords.Xcap = R * m.cos(lon)
                 Coords.Ycap = R * m.sin(lon)
                 Coords.Zcap = z
-                """
-                print("Coordenada auxiliar tampo X: " + str(Coords.Xcap))
-                print("Coordenada auxiliar tampo Y: " + str(Coords.Ycap))
-                print("Coordenada auxiliar tampo Z: " + str(Coords.Zcap))
-                """
+
             else:
                 print("Modo inválido")
 
@@ -577,6 +573,7 @@ class CylindricalLocation():
             Yaux = 0
 
         AuxPoint = VesselPoint(0.0, Yaux, -2)
+        AuxPoint.SetCap(Pcap.Cap)
 
         def CalcWallToCap(Xaux):
             """[Função para cálculo de distância entre um ponto no casco e outro no tampo]
@@ -589,8 +586,26 @@ class CylindricalLocation():
             """
 
             AuxPoint.SetXcord(Xaux)
+            # Abordagem não otimizada
             self.__AuxCoords(AuxPoint)
             AuxPoint.SetOnCap(False)
+
+            # Coordenadas auxiliares seccionamento - método otimizado
+            """
+            lon = Xaux / (self.diameter * m.pi) * 2 * m.pi - m.pi
+            R = self.diameter / 2
+            Xcap = R * np.cos(lon)
+            Ycap = R * np.sin(lon)
+            Zcap = 0
+
+            AuxPoint.Xcap = Xcap
+            AuxPoint.Ycap = Ycap
+            AuxPoint.Zcap = Zcap
+
+            # Coordenadas auxiliares geodesic
+            AuxPoint.Lat = 0
+            AuxPoint.Lon = lon
+            """
 
             t0 = time.time()
 
@@ -861,6 +876,7 @@ class CylindricalLocation():
         return (x0)
 
     def simpleLocation(self, TimesToSensors):
+        # Revisar este método
         x0 = self.__InitialKick(TimesToSensors)
 
         data = self.__orderMembers(TimesToSensors)
