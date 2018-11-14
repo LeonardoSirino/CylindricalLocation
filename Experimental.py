@@ -3,6 +3,7 @@ from Routines.CilLoc import VesselPoint, CylindricalLocation
 import numpy as np
 import time
 import math as m
+import matplotlib.pyplot as plt
 
 # Leitura dos dados experimentais
 blocks = read_AST("AST")
@@ -11,62 +12,67 @@ blocks = read_AST("AST")
 C = 2492.0
 d = C / m.pi
 h = 2700.0
-f = 0.5
+sp = 510.0
 
 # Configurações do algoritmo
 Locate = CylindricalLocation(d, h)
+Locate.set_semiPerimeter(sp)
 Locate.setCalcMode('section')
-Locate.set_f(f)
-sp = Locate.SemiPerimeter
-Locate.SetVelocity(4.880) # mm / uS
+Locate.setSectionMode('reg')
+Locate.SetVelocity(4.880)  # mm / uS
 
 # Posição dos sensores
-Locate.AddSensor(0, 0) # Não usado
-Locate.AddSensor(0, h / 3) # 1
-Locate.AddSensor(C / 3, h / 3) # 2
-Locate.AddSensor(2 * C / 3, h / 3) # 3
-Locate.AddSensor(C / 6, 2 * h / 3) # 4
-Locate.AddSensor(C / 2, 2 * h / 3) # 5
-Locate.AddSensor(5 * C / 6, 2 * h / 3) # 6
-Locate.AddSensor(C / 2, -sp / 2) # 7
-Locate.AddSensor(C, -sp / 2) # 8
-Locate.AddSensor(0, h + sp / 2) # 9
-Locate.AddSensor(C / 2, h + sp / 2) # 10
+Locate.AddSensor(0, h / 3)  # 1
+Locate.AddSensor(C / 3, h / 3)  # 2
+Locate.AddSensor(2 * C / 3, h / 3)  # 3
+Locate.AddSensor(C / 6, 2 * h / 3)  # 4
+Locate.AddSensor(C / 2, 2 * h / 3)  # 5
+Locate.AddSensor(5 * C / 6, 2 * h / 3)  # 6
+Locate.AddSensor(C / 2, -sp / 2)  # 7
+Locate.AddSensor(C, -sp / 2)  # 8
+Locate.AddSensor(0, h + sp / 2)  # 9
+Locate.AddSensor(C / 2, h + sp / 2)  # 10
 
 # Ponto de teste
-block = blocks[4]
-xp = C / 6
-yp = 2 * h / 3
+k = 0
+x_real = []
+y_real = []
+x_calc = []
+y_calc = []
+x_error = []
+y_error = []
 
-t = block.dt
-data = []
-i = 0
-for AT in t:
-    i += 1
-    data.append((i, AT))
+for block in blocks:
+    xp, yp = Locate.GetSensorCoords(k)
+    x_real.append(xp)
+    y_real.append(yp)
+    k += 1
 
-print(data)
+    t = block.dt
+    data = []
+    i = 0
+    for AT in t:
+        data.append((i, AT))
+        i += 1
 
-print("Posição verdadeira:")
-print("x: " + str(round(xp, 4)) +
-      " / y: " + str(round(yp, 4)))
-print("\n")
+    print("Real: x: " + str(round(xp, 4)) +
+          " / y: " + str(round(yp, 4)))
 
-t0 = time.time()
+    x = Locate.completeLocation(data)
+    x_calc.append(x[0])
+    y_calc.append(x[1])
 
-x = Locate.simpleLocation(data)
+    x_error += [xp, x[0], np.nan]
+    y_error += [yp, x[1], np.nan]
 
-t1 = time.time()
-print("Localização simplificada:")
-print(x)
-print("Tempo decorrido: " + str(t1 - t0))
-print("\n")
+    print("Calculado: x: " + str(round(x[0], 4)) +
+          " / y: " + str(round(x[1], 4)))
 
-t0 = time.time()
+    print("\n")
 
-x = Locate.completeLocation(data)
-
-t1 = time.time()
-print("Localização completa:")
-print(x)
-print("Tempo decorrido: " + str(t1 - t0))
+x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
+y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]
+plt.plot(x_vessel, y_vessel, 'g')
+plt.plot(x_real, y_real, 'b.', x_calc, y_calc, 'r.', x_error, y_error, 'k-')
+plt.legend(['Vaso', 'Real', 'Calc', 'Erro'])
+plt.show()

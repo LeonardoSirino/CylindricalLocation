@@ -1,3 +1,3 @@
-﻿Definir tolerâncias de parada adequadas
-Diminuir o tempo de cálculo de distância (geodésica e seccionamento) e miminizar o número de chamadas
-Erros quando o ponto está próximo à borda, verificar lógica dos clones
+﻿Verificar posição dos sensores nos vasos
+Gerar sinais com o punção e com o grafite
+Otimizar cálculo da distância corpo/tampo

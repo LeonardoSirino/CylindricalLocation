@@ -35,8 +35,7 @@ for sensor in Locate.SensorList:
 xdivs = 5
 ydivs = 5
 x_array = np.linspace(diameter * m.pi * 0.05, diameter * m.pi * 0.95, num=xdivs)
-y_array = np.linspace(-semiperimeter * 0.95, 0.95 *
-                      (height + semiperimeter), num=ydivs)
+y_array = np.linspace(-semiperimeter * 0.20, height * 0.2, num=ydivs)
 
 # Inicialização dos vetores
 x_RP = np.zeros(xdivs * ydivs)

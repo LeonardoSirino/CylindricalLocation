@@ -7,6 +7,7 @@ import copy
 import time
 
 from Routines.fastCalc import *
+from Routines.SectionAux import elipseArcReg
 
 
 class VesselPoint():
@@ -88,7 +89,7 @@ class CylindricalLocation():
         self.i_wall = 0
         self.i_captocap = 0
 
-    ### Setters & getters
+    # Setters & getters
     def setCalcMode(self, mode):
         self.CalcMode = mode
         """Modos:
@@ -108,6 +109,7 @@ class CylindricalLocation():
         self.cap = geo.Geodesic(self.diameter / 2, f)
         result = self.cap.Inverse(lat1=0, lon1=0, lat2=90, lon2=0)
         self.SemiPerimeter = result.get("s12")
+        self.__regPolys()
 
     def set_semiPerimeter(self, SemiPerimeter):
         """Definição do valor do semiperímetro e calculo do valor de f correspondente
@@ -129,12 +131,17 @@ class CylindricalLocation():
 
         res = opt.minimize(lambda x: (CalcSemiPerimeter(
             x) - SemiPerimeter)**2, bounds=[(0, 0.999)], method='L-BFGS-B', x0=0.5)
-        self.f = res.get("x")[0]
+        f = res.get("x")[0]
+        self.set_f(f)
         self.cap = geo.Geodesic(self.diameter / 2, self.f)
 
     def SetVelocity(self, velocity):
         "Definição da velocidade em mm/s"
         self.veloc = velocity
+
+    def GetSensorCoords(self, ID):
+        sensor = self.__getSensorbyID(ID)
+        return (sensor.Xcord, sensor.Ycord)
 
     # Periféricos
     def PrintAllSensors(self):
@@ -320,15 +327,20 @@ class CylindricalLocation():
         return NPtimes
 
     # Seccionamento
+    def __regPolys(self):
+        polArc, polPos = elipseArcReg(self.f, 7, 100000)
+        self.polArc = polArc
+        self.polArc_f = polArc[::-1]
+        self.polPos = polPos
+        self.polPos_f = polPos[::-1]
+
     def __sectionPos(self, s):
         if self.SectionMode == "reg":
             a = self.diameter / 2
             f = self.f
             s = s / a
-            pol = [-0.04520616,  0.38323073, -1.36785798,  2.66208137, -3.10204898,  2.24771868,
-                   0.01275433, -1.00151578]
-            polF = [-1.00151578,  0.01275433,  2.24771868, -3.10204898,  2.66208137, -1.36785798,
-                    0.38323073, -0.04520616]
+            pol = self.polPos
+            polF = self.polPos_f
             if self.numba:
                 y = sectionPos(s, polF)
                 R = y * a
@@ -378,12 +390,8 @@ class CylindricalLocation():
         if self.SectionMode == "reg":
             Ri = Ri / a
             Rf = Rf / a
-            pol = [9.94406631e-01, -5.42331127e-13, -1.67276958e+00,  9.30333908e-13,
-                   9.92271096e-01, -4.52365676e-13, -1.60763495e-01,  8.69627507e-14,
-                   1.01106572e+00,  1.21105713e+00]
-            polF = [1.21105713e+00,  1.01106572e+00,  8.69627507e-14, -1.60763495e-01,
-                    -4.52365676e-13,  9.92271096e-01,  9.30333908e-13, -1.67276958e+00,
-                    -5.42331127e-13,  9.94406631e-01]
+            pol = self.polArc
+            polF = self.polArc_f
             if self.numba:
                 y = sectionArc(Ri, Rf, polF)
                 s = y * a

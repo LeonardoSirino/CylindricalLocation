@@ -1,5 +1,3 @@
-import pandas as pd
-import numpy as np
 import os
 
 blocks = []
@@ -66,7 +64,8 @@ def read_AST(file_name):
         else:
             if active:
                 data = lineToArray(line)
-                current_block.AddData(data[0], data[2])
+                if data[3] > 0: # Filtro de amplitude
+                    current_block.AddData(data[0], data[2])
 
     return blocks
 

@@ -1,8 +1,14 @@
-import numpy as np
+import matplotlib.pyplot as plt
+import math as m
 
-pol = [9.94406631e-01, -5.42331127e-13, -1.67276958e+00,  9.30333908e-13,
-                   9.92271096e-01, -4.52365676e-13, -1.60763495e-01,  8.69627507e-14,
-                   1.01106572e+00,  1.21105713e+00]
+C = 2492.0
+d = C / m.pi
+h = 2700.0
+f = 0.5
+sp = 510
 
-a = np.flip(pol, 0)
-print(a)
+x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
+y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]
+
+plt.plot(x_vessel, y_vessel)
+plt.show()
