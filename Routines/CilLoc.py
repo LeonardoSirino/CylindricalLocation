@@ -906,9 +906,18 @@ class CylindricalLocation():
             f = np.log10(residue)
             return f
 
+        # options={"gtol": 1E-4}
+        bounds = [(-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi),
+                  (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))]
+        maxiter = 1000
+        polish = False
+
+        """
         res = opt.minimize(CalcResidue, x0, method='BFGS')
-        # print("Localização simplificada:")
-        # print(res.get("x"))
+        """
+
+        res = opt.differential_evolution(
+            CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish)
 
         return res.get("x")
 

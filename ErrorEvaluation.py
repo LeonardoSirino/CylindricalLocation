@@ -5,24 +5,31 @@ import math as m
 import matplotlib.pyplot as plt
 
 # Parâmetros do vaso
-diameter = 400.0
-height = 1000.0
-f = 0.5
+C = 2492.0
+diameter = C / m.pi
+height = 2700.0
+semiperimeter = 510.0
+
+h = height
+sp = semiperimeter
 
 # Configurações do algoritmo
 Locate = CylindricalLocation(diameter, height)
 Locate.setCalcMode('section')
-Locate.set_f(f)
-semiperimeter = Locate.SemiPerimeter
+Locate.set_semiPerimeter(semiperimeter)
 Locate.SetVelocity(5)
 
 # Posição dos sensores
-Locate.StructuredSensorDistribution(
-    lines=2, sensorsInLine=3, x0=0, y0=height / 3, dx=(diameter * m.pi) / 3, dy=height / 3, aligned=False)
-Locate.StructuredSensorDistribution(
-    lines=1, sensorsInLine=2, x0=0, y0=-semiperimeter / 2, dx=(diameter * m.pi) / 2, dy=0, aligned=False)
-Locate.StructuredSensorDistribution(lines=1, sensorsInLine=2, x0=(
-    diameter * m.pi) / 4, y0=height + semiperimeter / 2, dx=(diameter * m.pi) / 2, dy=0, aligned=False)
+Locate.AddSensor(0, h / 3)  # 1
+Locate.AddSensor(C / 3, h / 3)  # 2
+Locate.AddSensor(2 * C / 3, h / 3)  # 3
+Locate.AddSensor(C / 6, 2 * h / 3)  # 4
+Locate.AddSensor(C / 2, 2 * h / 3)  # 5
+Locate.AddSensor(5 * C / 6, 2 * h / 3)  # 6
+Locate.AddSensor(C / 2, -sp / 2)  # 7
+Locate.AddSensor(C, -sp / 2)  # 8
+Locate.AddSensor(0, h + sp / 2)  # 9
+Locate.AddSensor(C / 2, h + sp / 2)  # 10
 
 # Vetores de posição dos sensores
 xS = []
@@ -32,10 +39,10 @@ for sensor in Locate.SensorList:
     yS.append(sensor.Ycord)
 
 # Pontos de teste
-xdivs = 5
-ydivs = 5
+xdivs = 2
+ydivs = 2
 x_array = np.linspace(diameter * m.pi * 0.05, diameter * m.pi * 0.95, num=xdivs)
-y_array = np.linspace(-semiperimeter * 0.20, height * 0.2, num=ydivs)
+y_array = np.linspace(-semiperimeter * 0.95, height + semiperimeter * 0.95, num=ydivs)
 
 # Inicialização dos vetores
 x_RP = np.zeros(xdivs * ydivs)
@@ -75,10 +82,11 @@ for xp in x_array:
         j += 1
         print(j)
 
-plt.plot(x_RP, y_RP, 'ko', x_IK, y_IK, x_SL, y_SL, x_CL, y_CL, xS, yS, 'yo')
-plt.legend(["Posição real", "Chute inicial", "Simples", "Completa", "Sensores"])
+x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
+y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]
+plt.plot(x_vessel, y_vessel, 'k')
+plt.plot(x_RP, y_RP, 'go', x_SL, y_SL, x_CL, y_CL, xS, yS, 'yo')
+plt.legend(["Vaso", "Posição real", "Simples", "Completa", "Sensores"])
 plt.xlabel("Coordenada X")
 plt.ylabel("Coordenada Y")
-plt.ylim((-500, 1500))
-plt.xlim((-100, 1400))
 plt.show()
