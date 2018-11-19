@@ -39,7 +39,7 @@ for sensor in Locate.SensorList:
     yS.append(sensor.Ycord)
 
 # Pontos de teste
-divs = 5
+divs = 20
 x_array = np.linspace(diameter * m.pi * 0.05, diameter * m.pi * 0.95, num=divs)
 
 # Inicialização dos vetores
@@ -89,9 +89,11 @@ for xp in x_array:
     j += 1
     print(j)
 
-plt.plot(x_RP, y_RP, 'ko', x_IK, y_IK, x_SL, y_SL, x_CL, y_CL, xS, yS, 'yo')
-plt.legend(["Posição real", "Chute inicial",
-            "Simples", "Completa", "Sensores"])
+x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
+y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]
+plt.plot(x_vessel, y_vessel, 'k')
+plt.plot(x_RP, y_RP, 'go', x_SL, y_SL, x_CL, y_CL, xS, yS, 'yo')
+plt.legend(["Vaso", "Posição real", "Simples", "Completa", "Sensores"])
 plt.xlabel("Coordenada X")
 plt.ylabel("Coordenada Y")
 plt.show()

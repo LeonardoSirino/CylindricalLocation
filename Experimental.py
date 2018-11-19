@@ -1,4 +1,4 @@
-from DadosExperimentais.LeituraDados import read_AST
+from DadosExperimentais.LeituraDados import read_AST, read_LineDisplay
 from Routines.CilLoc import VesselPoint, CylindricalLocation
 import numpy as np
 import time
@@ -6,20 +6,20 @@ import math as m
 import matplotlib.pyplot as plt
 
 # Leitura dos dados experimentais
-blocks = read_AST("AST")
+blocks = read_LineDisplay("DadosGrafite")
 
 # Parâmetros do vaso
 C = 2492.0
 d = C / m.pi
 h = 2700.0
-sp = 510.0
+sp = 470.0
 
 # Configurações do algoritmo
 Locate = CylindricalLocation(d, h)
 Locate.set_semiPerimeter(sp)
 Locate.setCalcMode('section')
 Locate.setSectionMode('reg')
-Locate.SetVelocity(4.880)  # mm / uS
+Locate.SetVelocity(5.0)  # mm / us = km / s
 
 # Posição dos sensores
 Locate.AddSensor(0, h / 3)  # 1
@@ -33,6 +33,11 @@ Locate.AddSensor(C, -sp / 2)  # 8
 Locate.AddSensor(0, h + sp / 2)  # 9
 Locate.AddSensor(C / 2, h + sp / 2)  # 10
 
+"""
+t = Locate.returnDeltaT(0, 0, range(0, 6), 'original')
+print(t)
+
+"""
 # Ponto de teste
 k = 0
 x_real = []
@@ -43,20 +48,17 @@ x_error = []
 y_error = []
 
 for block in blocks:
-    xp, yp = Locate.GetSensorCoords(k)
+    xp, yp = (block.X, block.Y)
     x_real.append(xp)
     y_real.append(yp)
     k += 1
 
-    t = block.dt
+    read_data = zip(block.IDs, block.dt)
     data = []
-    i = 0
-    for AT in t:
-        data.append((i, AT))
-        i += 1
+    for (ID, dt) in read_data:
+        data.append((ID, dt))
 
-    print("Real: x: " + str(round(xp, 4)) +
-          " / y: " + str(round(yp, 4)))
+    print("Real: x: " + str(round(xp, 4)) + " / y: " + str(round(yp, 4)))
 
     x = Locate.completeLocation(data)
     x_calc.append(x[0])

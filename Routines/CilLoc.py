@@ -453,6 +453,7 @@ class CylindricalLocation():
                 t1 = time.time()
                 self.t_samecap += t1 - t0
                 self.i_samecap += 1
+                # print("Mesmo tampo")
             else:  # Pontos em tampos opostos
                 if P1.Cap == "sup":
                     Psup = P1
@@ -465,6 +466,7 @@ class CylindricalLocation():
                 t1 = time.time()
                 self.t_captocap += t1 - t0
                 self.i_captocap += 1
+                # print("Tampos opostos")
         # Distância entre um ponto no casco e outro no tampo
         elif P1.OnCap ^ P2.OnCap:
             t0 = time.time()
@@ -472,7 +474,14 @@ class CylindricalLocation():
             t1 = time.time()
             self.t_wallcap += t1 - t0
             self.i_wallcap += 1
+            # print("Casco e tampo")
         else:  # Distância entre pontos no casco
+            """
+            print("Casco")
+            print("P1 - X: " + str(P1.Xcord) + "  Y: " + str(P1.Ycord))
+            print("P2 - X: " + str(P2.Xcord) + "  Y: " + str(P2.Ycord))
+            """
+
             t0 = time.time()
             if self.numba:
                 # Identificar onde as coordenadas estão sendo definidas como vetores
@@ -494,6 +503,11 @@ class CylindricalLocation():
                                  m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
 
                 dist = np.min([dist1, dist2, dist3])
+                """
+                print([dist1, dist2, dist3])
+                print("Distância: " + str(dist))
+                print("\n")
+                """
 
             t1 = time.time()
             self.t_wall += t1 - t0
