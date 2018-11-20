@@ -25,20 +25,15 @@ Locate.StructuredSensorDistribution(lines=1, sensorsInLine=2, x0=(
     diameter * m.pi) / 4, y0=height + semiperimeter / 2, dx=(diameter * m.pi) / 2, dy=0, aligned=False)
 
 # Ponto de teste
-xp = 0
-yp = 0
+xp = C / 2
+yp = height / 2
 
-"""
 t = Locate.returnDeltaT(xp, yp, [-1], 'geodesic')
 data = []
 i = 0
 for AT in t:
     data.append((i, AT))
     i += 1
-"""
-
-data = [(8, 0.0), (7, 104.0), (1, 131.0), (3, 189.0),
-        (2, 192.0), (4, 376.0), (6, 380.0), (5, 432.0)]
 
 print("Posição verdadeira:")
 print("x: " + str(round(xp, 4)) +
@@ -50,22 +45,16 @@ t0 = time.time()
 x = Locate.simpleLocation(data)
 
 t1 = time.time()
-"""
 print("Localização simplificada:")
 print(x)
 print("Tempo decorrido: " + str(t1 - t0))
 print("\n")
-"""
 
 t0 = time.time()
 
 x = Locate.completeLocation(data)
 
 t1 = time.time()
-"""
 print("Localização completa:")
 print(x)
 print("Tempo decorrido: " + str(t1 - t0))
-"""
-
-# Locate.fCostMap(data)

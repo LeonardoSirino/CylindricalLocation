@@ -1,4 +1,8 @@
-a = "teste"
+import numpy as np
 
-b = a.find("st")
+a = np.array([1, 2, 3])
+
+b = a - np.min(a)
+b = np.exp(-b)
+
 print(b)

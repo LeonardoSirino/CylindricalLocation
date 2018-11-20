@@ -44,8 +44,12 @@ x_real = []
 y_real = []
 x_calc = []
 y_calc = []
+x_simple = []
+y_simple = []
 x_error = []
 y_error = []
+x_errorS = []
+y_errorS = []
 
 for block in blocks:
     xp, yp = (block.X, block.Y)
@@ -60,6 +64,16 @@ for block in blocks:
 
     print("Real: x: " + str(round(xp, 4)) + " / y: " + str(round(yp, 4)))
 
+    x = Locate.simpleLocation(data)
+    x_simple.append(x[0])
+    y_simple.append(x[1])
+
+    x_errorS += [xp, x[0], np.nan]
+    y_errorS += [yp, x[1], np.nan]
+
+    print("Simples: x: " + str(round(x[0], 4)
+                               ) + " / y: " + str(round(x[1], 4)))
+
     x = Locate.completeLocation(data)
     x_calc.append(x[0])
     y_calc.append(x[1])
@@ -67,14 +81,18 @@ for block in blocks:
     x_error += [xp, x[0], np.nan]
     y_error += [yp, x[1], np.nan]
 
-    print("Calculado: x: " + str(round(x[0], 4)) +
-          " / y: " + str(round(x[1], 4)))
+    print("Calculado: x: " +
+          str(round(x[0], 4)) + " / y: " + str(round(x[1], 4)))
 
     print("\n")
 
 x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
 y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]
 plt.plot(x_vessel, y_vessel, 'g')
-plt.plot(x_real, y_real, 'b.', x_calc, y_calc, 'r.', x_error, y_error, 'k-')
-plt.legend(['Vaso', 'Real', 'Calc', 'Erro'])
+plt.plot(x_real, y_real, '.', markersize=20)
+plt.plot(x_calc, y_calc, '.', markersize=20)
+plt.plot(x_simple, y_simple, '.', markersize=20)
+plt.plot(x_error, y_error, 'k--')
+plt.plot(x_errorS, y_errorS, 'k--')
+plt.legend(['Vaso', 'Real', 'Calc', 'Simples', 'Erro', 'Erro simples'])
 plt.show()

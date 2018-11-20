@@ -77,7 +77,7 @@ class CylindricalLocation():
         """
         self.__ellipseDivs = 500
         self.__DivsTolerance = 100
-        self.numba = False
+        self.numba = True
 
         # Inicialização dos tempos acumulados
         self.t_samecap = 0
@@ -902,22 +902,27 @@ class CylindricalLocation():
         x0 = self.__InitialKick(TimesToSensors)
 
         data = self.__orderMembers(TimesToSensors)
+        (firstID, t0) = data[0]
         IDs = []
         MeasTimes = []
 
         for member in data:
-            (ID, time) = member
+            (ID, TOF) = member
             IDs.append(ID)
-            MeasTimes.append(time)
+            MeasTimes.append(TOF - t0)
 
         MeasTimes = np.array(MeasTimes)
-        normalizer = 1 / (np.max(MeasTimes) + 1)
+        gain = 10
+        A = np.sqrt(self.height**2 + (self.diameter * np.pi / 2)
+                    ** 2) / self.veloc
+        weights = (MeasTimes - np.min(MeasTimes)) / A
+        weights = np.exp(-gain * weights)
 
         def CalcResidue(x):
-            tcalc = self.returnDeltaT(x[0], x[1], IDs, 'simple')
-            tcalc = np.array(tcalc)
-            residue = np.sqrt(np.sum(((tcalc - MeasTimes) * normalizer)**2))
+            tcalc = self.returnDeltaT(x[0], x[1], IDs, 'original')
+            residue = np.sqrt(np.sum(((tcalc - MeasTimes) * weights / A)**2))
             f = np.log10(residue)
+
             return f
 
         # options={"gtol": 1E-4}
@@ -952,12 +957,15 @@ class CylindricalLocation():
             MeasTimes.append(TOF - t0)
 
         MeasTimes = np.array(MeasTimes)
-        normalizer = 1 / (np.max(MeasTimes) + 1)
+        gain = 10
+        A = np.sqrt(self.height**2 + (self.diameter * np.pi / 2)
+                    ** 2) / self.veloc
+        weights = (MeasTimes - np.min(MeasTimes)) / A
+        weights = np.exp(-gain * weights)
 
         def CalcResidue(x):
             tcalc = self.returnDeltaT(x[0], x[1], IDs, 'original')
-            tcalc = np.array(tcalc)
-            residue = np.sqrt(np.sum(((tcalc - MeasTimes) * normalizer)**2))
+            residue = np.sqrt(np.sum(((tcalc - MeasTimes) * weights / A)**2))
             f = np.log10(residue)
 
             return f
