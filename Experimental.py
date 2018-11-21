@@ -6,7 +6,8 @@ import math as m
 import matplotlib.pyplot as plt
 
 # Leitura dos dados experimentais
-blocks = read_LineDisplay("DadosGrafite")
+#blocks = read_LineDisplay("DadosGrafite")
+blocks = read_AST("AST_Samos")
 
 # Parâmetros do vaso
 C = 2492.0
@@ -52,7 +53,8 @@ x_errorS = []
 y_errorS = []
 
 for block in blocks:
-    xp, yp = (block.X, block.Y)
+    # xp, yp = (block.X, block.Y)
+    xp, yp = Locate.GetSensorCoords(block.pulser)
     x_real.append(xp)
     y_real.append(yp)
     k += 1
@@ -89,10 +91,10 @@ for block in blocks:
 x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
 y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]
 plt.plot(x_vessel, y_vessel, 'g')
-plt.plot(x_real, y_real, '.', markersize=20)
-plt.plot(x_calc, y_calc, '.', markersize=20)
-plt.plot(x_simple, y_simple, '.', markersize=20)
-plt.plot(x_error, y_error, 'k--')
-plt.plot(x_errorS, y_errorS, 'k--')
+plt.plot(x_real, y_real, '.', markersize=12)
+plt.plot(x_calc, y_calc, '.', markersize=12)
+plt.plot(x_simple, y_simple, '.', markersize=12)
+plt.plot(x_error, y_error, 'k--', linewidth=1)
+plt.plot(x_errorS, y_errorS, 'k--', linewidth=1)
 plt.legend(['Vaso', 'Real', 'Calc', 'Simples', 'Erro', 'Erro simples'])
 plt.show()

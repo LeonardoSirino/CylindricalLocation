@@ -5,14 +5,14 @@ blocks = []
 
 class Block:
     def __init__(self, pulser):
-        self.pulser = pulser
+        self.pulser = pulser - 1
         self.IDs = []
         self.dt = []
         self.X = 0
         self.Y = 0
 
     def AddData(self, ID, dt):
-        self.IDs.append(ID)
+        self.IDs.append(ID - 1)
         self.dt.append(dt)
 
     def SetCoord(self, x, y):
@@ -94,7 +94,7 @@ def read_LineDisplay(file_name):
             kn = line.find("]")
             temp = line[(ki + 1):kn]
             channels = temp.split(",")
-            channels = [int(x) - 1 for x in channels]
+            channels = [int(x) for x in channels]
 
             ki = line.find("[", kn)
             kn = line.find("]", kn + 1)
@@ -123,8 +123,9 @@ def read_LineDisplay(file_name):
 
 
 """
-blocks = read_LineDisplay("DadosGrafite")
+blocks = read_AST("AST_Samos")
 for block in blocks:
-    #print(block)
+    print(block)
     pass
+
 """
