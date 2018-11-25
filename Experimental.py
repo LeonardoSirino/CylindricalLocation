@@ -1,4 +1,4 @@
-from DadosExperimentais.LeituraDados import read_AST, read_LineDisplay
+from DadosExperimentais.LeituraDados import read_AST, read_LineDisplay, read_LineDisplayGroup
 from Routines.CilLoc import VesselPoint, CylindricalLocation
 import numpy as np
 import time
@@ -6,7 +6,7 @@ import math as m
 import matplotlib.pyplot as plt
 
 # Leitura dos dados experimentais
-blocks = read_LineDisplay("Linha1_line_display")
+blocks = read_LineDisplay("Linha1_line_display", 0)
 #blocks = read_AST("AST_Samos")
 
 # Parâmetros do vaso

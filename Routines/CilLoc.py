@@ -905,8 +905,8 @@ class CylindricalLocation():
         # options={"gtol": 1E-4}
         bounds = [(-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi),
                   (-1.01 * self.SemiPerimeter, self.height + 1.01 * self.SemiPerimeter)]
-        maxiter = 3000
-        polish = True
+        maxiter = 1000
+        polish = False
 
         """
         res = opt.minimize(CalcResidue, x0, method='BFGS')
@@ -949,8 +949,8 @@ class CylindricalLocation():
         # options={"gtol": 1E-4}
         bounds = [(-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi),
                   (-1.01 * self.SemiPerimeter, self.height + 1.01 * self.SemiPerimeter)]
-        maxiter = 3000
-        polish = True
+        maxiter = 1000
+        polish = False
 
         """
         res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 1E-4}, bounds=bounds)

@@ -1,6 +1,8 @@
 import os
 
 blocks = []
+cur_block = None
+max_dt = 1500
 
 
 class Block:
@@ -10,17 +12,58 @@ class Block:
         self.dt = []
         self.X = 0
         self.Y = 0
+        self.tf = 0
+        self.t0 = 0
 
     def AddData(self, ID, dt):
         self.IDs.append(ID - 1)
         self.dt.append(dt)
+
+    def Newhit(self, Ch, t):
+        global max_dt
+
+        if self.t0 == 0:
+            self.t0 = t
+            self.tf = t
+
+        dt = t - self.t0
+
+        try:
+            self.IDs.index(Ch - 1)
+            found = True
+        except ValueError:
+            found = False
+
+        if not found and (t - self.tf) <= max_dt:
+            self.IDs.append(Ch - 1)
+            self.dt.append(dt)
+            self.tf = t
+
+        if (t - self.tf) > max_dt:
+            self.CloseBlock()
+            
+            global cur_block
+            cur_block.Newhit(Ch, t)
+
+
+    def CloseBlock(self):
+        global cur_block
+        global blocks
+
+        if len(cur_block.IDs) >= 3:
+            blocks.append(cur_block)
+
+        new_block = Block(-1)
+        new_block.SetCoord(self.X, self.Y)
+        
+        cur_block = new_block
 
     def SetCoord(self, x, y):
         self.X = x
         self.Y = y
 
     def __str__(self):
-        text = "PUlSER: " + str(self.pulser) + "\n"
+        text = "PUlSER: " + str(self.pulser) + " --- X: " + str(round(self.X, 2)) + " Y: " + str(round(self.Y, 2)) + "\n"
         for ID, deltaT in zip(self.IDs, self.dt):
             text += "ID: " + str(ID) + " / " + str(deltaT) + "\n"
 
@@ -48,6 +91,9 @@ def lineToArray(line):
                 cur_number = ""
         else:
             cur_number += char
+
+    if cur_number != "":
+        array.append(float(cur_number))
 
     return array
 
@@ -79,7 +125,7 @@ def read_AST(file_name):
     return blocks
 
 
-def read_LineDisplay(file_name):
+def read_LineDisplayGroup(file_name):
     cwd = os.getcwd()
     filePath = cwd + "\\DadosExperimentais\\Arquivos\\" + file_name + ".txt"
     file = open(filePath, "r")
@@ -122,10 +168,48 @@ def read_LineDisplay(file_name):
     return blocks
 
 
+def read_LineDisplay(file_name, y):
+    global cur_block
+    cwd = os.getcwd()
+    filePath = cwd + "\\DadosExperimentais\\Arquivos\\" + file_name + ".txt"
+    file = open(filePath, "r")
+    x = -250
+    dx = 250
+
+    flag = True
+    k = 0
+    while flag:
+        line = file.readline()
+        if line[:3] == "  1":
+            data = lineToArray(line)
+            t = data[1] * 1E6
+            Ch = data[2]
+            cur_block.Newhit(Ch, t)
+        elif line[:3] == "128":
+            x += dx
+            if cur_block == None:
+                cur_block = Block(-1)
+                cur_block.SetCoord(x, y)
+            else:
+                cur_block.CloseBlock()
+            
+            cur_block.SetCoord(x, y)
+        elif line == "":
+            flag = False
+        else:
+            pass
+
+    global blocks
+    if len(cur_block.IDs) >= 3:
+        blocks.append(cur_block)
+
+    return blocks
+
 """
-blocks = read_AST("AST_Samos")
+blocks = read_LineDisplay("Linha1_line_display", 0)
 for block in blocks:
     print(block)
     pass
 
+print(str(len(blocks)) + " blocos")
 """
