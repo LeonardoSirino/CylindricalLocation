@@ -6,8 +6,8 @@ import math as m
 import matplotlib.pyplot as plt
 
 # Leitura dos dados experimentais
-#blocks = read_LineDisplay("DadosGrafite")
-blocks = read_AST("AST_Samos")
+blocks = read_LineDisplay("Linha1_line_display")
+#blocks = read_AST("AST_Samos")
 
 # Parâmetros do vaso
 C = 2492.0
@@ -53,8 +53,8 @@ x_errorS = []
 y_errorS = []
 
 for block in blocks:
-    # xp, yp = (block.X, block.Y)
-    xp, yp = Locate.GetSensorCoords(block.pulser)
+    xp, yp = (block.X, block.Y)
+    # xp, yp = Locate.GetSensorCoords(block.pulser)
     x_real.append(xp)
     y_real.append(yp)
     k += 1

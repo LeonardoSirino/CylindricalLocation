@@ -442,6 +442,21 @@ class CylindricalLocation():
         return redF, d
 
     # Distâncias e tempos
+    def ExternalCalcDist(self, x1, y1, x2, y2):
+        auxMode = self.CalcMode
+
+        self.setCalcMode('geodesic')
+
+        P1 = VesselPoint(x1, y1, -3)
+        P2 = VesselPoint(x2, y2, -3)
+        self.__AuxCoords(P1)
+        self.__AuxCoords(P2)
+        dist = self.__calcDist(P1, P2)
+
+        self.setCalcMode(auxMode)
+
+        return dist
+
     def __calcDist(self, P1, P2):
         """
         Função para calcular distância entre dois pontos em posições quaisquer do vaso
@@ -453,7 +468,6 @@ class CylindricalLocation():
                 t1 = time.time()
                 self.t_samecap += t1 - t0
                 self.i_samecap += 1
-                # print("Mesmo tampo")
             else:  # Pontos em tampos opostos
                 if P1.Cap == "sup":
                     Psup = P1
@@ -466,7 +480,6 @@ class CylindricalLocation():
                 t1 = time.time()
                 self.t_captocap += t1 - t0
                 self.i_captocap += 1
-                # print("Tampos opostos")
         # Distância entre um ponto no casco e outro no tampo
         elif P1.OnCap ^ P2.OnCap:
             t0 = time.time()
@@ -474,13 +487,7 @@ class CylindricalLocation():
             t1 = time.time()
             self.t_wallcap += t1 - t0
             self.i_wallcap += 1
-            # print("Casco e tampo")
         else:  # Distância entre pontos no casco
-            """
-            print("Casco")
-            print("P1 - X: " + str(P1.Xcord) + "  Y: " + str(P1.Ycord))
-            print("P2 - X: " + str(P2.Xcord) + "  Y: " + str(P2.Ycord))
-            """
 
             t0 = time.time()
             if self.numba:
@@ -503,11 +510,6 @@ class CylindricalLocation():
                                  m.pi) ** 2 + (P1.Ycord - P2.Ycord)**2)
 
                 dist = np.min([dist1, dist2, dist3])
-                """
-                print([dist1, dist2, dist3])
-                print("Distância: " + str(dist))
-                print("\n")
-                """
 
             t1 = time.time()
             self.t_wall += t1 - t0
@@ -629,25 +631,11 @@ class CylindricalLocation():
             AuxPoint.Lon = lon
             """
 
-            t0 = time.time()
-
             dist1 = self.__calcDist(Pwall, AuxPoint)
-
-            t1 = time.time()
-            dt1 = t1 - t0
-            self.t_wall -= dt1
-            self.i_wall -= 1
 
             AuxPoint.SetOnCap(True)
 
-            t0 = time.time()
-
             dist2 = self.__calcDist(AuxPoint, Pcap)
-
-            t1 = time.time()
-            dt2 = t1 - t0
-            self.t_samecap -= dt2
-            self.i_samecap -= 1
 
             totalDist = dist1 + dist2
             return totalDist
@@ -912,14 +900,14 @@ class CylindricalLocation():
             MeasTimes.append(TOF - t0)
 
         MeasTimes = np.array(MeasTimes)
-        gain = 10
+        gain = 5
         A = np.sqrt(self.height**2 + (self.diameter * np.pi / 2)
                     ** 2) / self.veloc
         weights = (MeasTimes - np.min(MeasTimes)) / A
         weights = np.exp(-gain * weights)
 
         def CalcResidue(x):
-            tcalc = self.returnDeltaT(x[0], x[1], IDs, 'original')
+            tcalc = self.returnDeltaT(x[0], x[1], IDs, 'simple')
             residue = np.sqrt(np.sum(((tcalc - MeasTimes) * weights / A)**2))
             f = np.log10(residue)
 
@@ -927,7 +915,7 @@ class CylindricalLocation():
 
         # options={"gtol": 1E-4}
         bounds = [(-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi),
-                  (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))]
+                  (-1.01 * self.SemiPerimeter, self.height + 1.01 * self.SemiPerimeter)]
         maxiter = 1000
         polish = False
 
@@ -942,7 +930,7 @@ class CylindricalLocation():
 
     def completeLocation(self, TimesToSensors):
         # Inicialização dos tempos acumulados
-        # self.__initializeTimes()
+        self.__initializeTimes()
 
         #x0 = self.__InitialKick(TimesToSensors)
 
@@ -957,7 +945,7 @@ class CylindricalLocation():
             MeasTimes.append(TOF - t0)
 
         MeasTimes = np.array(MeasTimes)
-        gain = 10
+        gain = 5
         A = np.sqrt(self.height**2 + (self.diameter * np.pi / 2)
                     ** 2) / self.veloc
         weights = (MeasTimes - np.min(MeasTimes)) / A
@@ -972,9 +960,9 @@ class CylindricalLocation():
 
         # options={"gtol": 1E-4}
         bounds = [(-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi),
-                  (-1.01 * self.SemiPerimeter, 1.01 * (self.height + self.SemiPerimeter))]
+                  (-1.01 * self.SemiPerimeter, self.height + 1.01 * self.SemiPerimeter)]
         maxiter = 1000
-        polish = False
+        polish = True
 
         """
         res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 1E-4}, bounds=bounds)
@@ -985,6 +973,6 @@ class CylindricalLocation():
 
         # print(res)  # - Resultado da otimização
 
-        # self.__printTimes()
+        self.__printTimes()
 
         return res.get("x")
