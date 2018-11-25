@@ -39,21 +39,18 @@ for sensor in Locate.SensorList:
     yS.append(sensor.Ycord)
 
 # Pontos de teste
-divs = 5
+divs = 30
 x_array = np.linspace(diameter * m.pi * 0.05, diameter * m.pi * 0.95, num=divs)
 
 # Inicialização dos vetores
 x_RP = np.zeros(divs)
 y_RP = np.zeros(divs)
-x_IK = []
-y_IK = []
 x_SL = []
 y_SL = []
 x_CL = []
 y_CL = []
-error_IK = []
-error_S = []
-error_Sec = []
+error_S = np.zeros(divs)
+error_Sec = np.zeros(divs)
 
 j = 0
 yp = 0
@@ -68,23 +65,19 @@ for xp in x_array:
     x_RP[j] = xp
     y_RP[j] = yp
 
-    x = Locate._CylindricalLocation__InitialKick(data)
-    x_IK += [xp, x[0], np.nan]
-    y_IK += [yp, x[1], np.nan]
-    e = Locate.ExternalCalcDist(xp, yp, x[0], x[1])
-    error_IK.append(e)
-
     x = Locate.simpleLocation(data)
     x_SL += [xp, x[0], np.nan]
     y_SL += [yp, x[1], np.nan]
     e = Locate.ExternalCalcDist(xp, yp, x[0], x[1])
-    error_S.append(e)
+    error_S[j] = e
+
+    tcalc = Locate.returnDeltaT(xp, yp, [-1], 'simple')
 
     x = Locate.completeLocation(data)
     x_CL += [xp, x[0], np.nan]
     y_CL += [yp, x[1], np.nan]
     e = Locate.ExternalCalcDist(xp, yp, x[0], x[1])
-    error_Sec.append(e)
+    error_Sec[j] = e
 
     j += 1
     print(j)

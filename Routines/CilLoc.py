@@ -787,7 +787,7 @@ class CylindricalLocation():
                 y1 = float(P1.Ycord)
                 y2 = y
                 d = float(self.diameter)
-                dist = wallDist(x1, x2, y1, y2, d)
+                dist = wallDist(x1, y1, x2, y2, d)
 
             else:
                 dist1 = np.sqrt((P1.Xcord - x) ** 2 + (P1.Ycord - y)**2)
@@ -801,16 +801,6 @@ class CylindricalLocation():
                 dist = np.min([dist1, dist2, dist3])
 
             distances.append(dist)
-
-            """
-            dist1 = np.sqrt((x - sensor.Xcord)**2 + (y - sensor.Ycord)**2)
-            dist2 = np.sqrt((x - sensor.Xcord + self.diameter *
-                             m.pi)**2 + (y - sensor.Ycord)**2)
-            dist3 = np.sqrt((x - sensor.Xcord - self.diameter *
-                             m.pi)**2 + (y - sensor.Ycord)**2)
-            minDist = np.min([dist1, dist2, dist3])
-            distances.append(minDist)
-            """
 
         self.__returnSensors()
         return distances
@@ -901,8 +891,7 @@ class CylindricalLocation():
 
         MeasTimes = np.array(MeasTimes)
         gain = 5
-        A = np.sqrt(self.height**2 + (self.diameter * np.pi / 2)
-                    ** 2) / self.veloc
+        A = np.sqrt(self.height**2 + (self.diameter * np.pi / 2)** 2) / self.veloc
         weights = (MeasTimes - np.min(MeasTimes)) / A
         weights = np.exp(-gain * weights)
 
@@ -916,21 +905,20 @@ class CylindricalLocation():
         # options={"gtol": 1E-4}
         bounds = [(-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi),
                   (-1.01 * self.SemiPerimeter, self.height + 1.01 * self.SemiPerimeter)]
-        maxiter = 1000
-        polish = False
+        maxiter = 3000
+        polish = True
 
         """
         res = opt.minimize(CalcResidue, x0, method='BFGS')
         """
 
-        res = opt.differential_evolution(
-            CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish)
+        res = opt.differential_evolution(CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish)
 
         return res.get("x")
 
     def completeLocation(self, TimesToSensors):
         # Inicialização dos tempos acumulados
-        self.__initializeTimes()
+        # self.__initializeTimes()
 
         #x0 = self.__InitialKick(TimesToSensors)
 
@@ -961,18 +949,17 @@ class CylindricalLocation():
         # options={"gtol": 1E-4}
         bounds = [(-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi),
                   (-1.01 * self.SemiPerimeter, self.height + 1.01 * self.SemiPerimeter)]
-        maxiter = 1000
+        maxiter = 3000
         polish = True
 
         """
         res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 1E-4}, bounds=bounds)
         """
 
-        res = opt.differential_evolution(
-            CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish)
+        res = opt.differential_evolution(CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish)
 
         # print(res)  # - Resultado da otimização
 
-        self.__printTimes()
+        # self.__printTimes()
 
         return res.get("x")
