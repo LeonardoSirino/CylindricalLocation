@@ -890,7 +890,7 @@ class CylindricalLocation():
             MeasTimes.append(TOF - t0)
 
         MeasTimes = np.array(MeasTimes)
-        gain = 5
+        gain = 10
         A = np.sqrt(self.height**2 + (self.diameter * np.pi / 2)** 2) / self.veloc
         weights = (MeasTimes - np.min(MeasTimes)) / A
         weights = np.exp(-gain * weights)
@@ -906,7 +906,7 @@ class CylindricalLocation():
         bounds = [(-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi),
                   (-1.01 * self.SemiPerimeter, self.height + 1.01 * self.SemiPerimeter)]
         maxiter = 1000
-        polish = False
+        polish = True
 
         """
         res = opt.minimize(CalcResidue, x0, method='BFGS')
@@ -933,9 +933,8 @@ class CylindricalLocation():
             MeasTimes.append(TOF - t0)
 
         MeasTimes = np.array(MeasTimes)
-        gain = 5
-        A = np.sqrt(self.height**2 + (self.diameter * np.pi / 2)
-                    ** 2) / self.veloc
+        gain = 10
+        A = np.sqrt(self.height**2 + (self.diameter * np.pi / 2)** 2) / self.veloc
         weights = (MeasTimes - np.min(MeasTimes)) / A
         weights = np.exp(-gain * weights)
 
@@ -950,7 +949,7 @@ class CylindricalLocation():
         bounds = [(-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi),
                   (-1.01 * self.SemiPerimeter, self.height + 1.01 * self.SemiPerimeter)]
         maxiter = 1000
-        polish = False
+        polish = True
 
         """
         res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 1E-4}, bounds=bounds)

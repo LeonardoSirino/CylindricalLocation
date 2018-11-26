@@ -13,7 +13,7 @@ blocks = read_LineDisplay("Linha1_line_display", 0)
 C = 2492.0
 d = C / m.pi
 h = 2700.0
-sp = 470.0
+sp = 490.0
 
 # Configurações do algoritmo
 Locate = CylindricalLocation(d, h)
@@ -66,27 +66,32 @@ for block in blocks:
 
     print("Real: x: " + str(round(xp, 4)) + " / y: " + str(round(yp, 4)))
 
-    x = Locate.simpleLocation(data)
-    x_simple.append(x[0])
-    y_simple.append(x[1])
+    x_s = Locate.simpleLocation(data)
+    x_c = Locate.completeLocation(data)
 
-    x_errorS += [xp, x[0], np.nan]
-    y_errorS += [yp, x[1], np.nan]
+    error = Locate.ExternalCalcDist(x_c[0], x_c[1], xp, yp)
+    print("Erro do completo " + str(round(error, 3)) + " mm")
 
-    print("Simples: x: " + str(round(x[0], 4)
-                               ) + " / y: " + str(round(x[1], 4)))
+    if error < 300:
+        x_simple.append(x_s[0])
+        y_simple.append(x_s[1])
 
-    x = Locate.completeLocation(data)
-    x_calc.append(x[0])
-    y_calc.append(x[1])
+        x_errorS += [xp, x_s[0], np.nan]
+        y_errorS += [yp, x_s[1], np.nan]
 
-    x_error += [xp, x[0], np.nan]
-    y_error += [yp, x[1], np.nan]
+        print("Simples: x: " + str(round(x_s[0], 4)
+                                ) + " / y: " + str(round(x_s[1], 4)))
 
-    print("Calculado: x: " +
-          str(round(x[0], 4)) + " / y: " + str(round(x[1], 4)))
+        x_calc.append(x_c[0])
+        y_calc.append(x_c[1])
 
-    print("\n")
+        x_error += [xp, x_c[0], np.nan]
+        y_error += [yp, x_c[1], np.nan]
+
+        print("Calculado: x: " +
+            str(round(x_c[0], 4)) + " / y: " + str(round(x_c[1], 4)))
+
+        print("\n")
 
 x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
 y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]

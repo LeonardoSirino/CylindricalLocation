@@ -41,10 +41,9 @@ class Block:
 
         if (t - self.tf) > max_dt:
             self.CloseBlock()
-            
+
             global cur_block
             cur_block.Newhit(Ch, t)
-
 
     def CloseBlock(self):
         global cur_block
@@ -55,7 +54,7 @@ class Block:
 
         new_block = Block(-1)
         new_block.SetCoord(self.X, self.Y)
-        
+
         cur_block = new_block
 
     def SetCoord(self, x, y):
@@ -63,7 +62,8 @@ class Block:
         self.Y = y
 
     def __str__(self):
-        text = "PUlSER: " + str(self.pulser) + " --- X: " + str(round(self.X, 2)) + " Y: " + str(round(self.Y, 2)) + "\n"
+        text = "PUlSER: " + str(self.pulser) + " --- X: " + \
+            str(round(self.X, 2)) + " Y: " + str(round(self.Y, 2)) + "\n"
         for ID, deltaT in zip(self.IDs, self.dt):
             text += "ID: " + str(ID) + " / " + str(deltaT) + "\n"
 
@@ -192,7 +192,7 @@ def read_LineDisplay(file_name, y):
                 cur_block.SetCoord(x, y)
             else:
                 cur_block.CloseBlock()
-            
+
             cur_block.SetCoord(x, y)
         elif line == "":
             flag = False
@@ -204,6 +204,7 @@ def read_LineDisplay(file_name, y):
         blocks.append(cur_block)
 
     return blocks
+
 
 """
 blocks = read_LineDisplay("Linha1_line_display", 0)
