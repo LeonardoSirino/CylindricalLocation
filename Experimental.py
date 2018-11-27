@@ -6,8 +6,8 @@ import math as m
 import matplotlib.pyplot as plt
 
 # Leitura dos dados experimentais
-blocks = read_LineDisplay("Linha1_line_display", 0)
-#blocks = read_AST("AST_Samos")
+# blocks = read_LineDisplay("Linha1_line_display", 0)
+blocks = read_AST("AST_Samos")
 
 # Parâmetros do vaso
 C = 2492.0
@@ -21,24 +21,22 @@ Locate.set_semiPerimeter(sp)
 Locate.setCalcMode('section')
 Locate.setSectionMode('reg')
 Locate.SetVelocity(5.0)  # mm / us = km / s
+# Para o AST v = 5km/s --> onda superficial
+# Para quebra de grafite v = 3.2 km/s --> onda longitudinal
+
 
 # Posição dos sensores
 Locate.AddSensor(0, h / 3)  # 1
 Locate.AddSensor(C / 3, h / 3)  # 2
 Locate.AddSensor(2 * C / 3, h / 3)  # 3
-Locate.AddSensor(C / 6, 2 * h / 3)  # 4
-Locate.AddSensor(C / 2, 2 * h / 3)  # 5
-Locate.AddSensor(5 * C / 6, 2 * h / 3)  # 6
+Locate.AddSensor(C / 6, 2130.0)  # 4
+Locate.AddSensor(C / 2, 2130.0)  # 5
+Locate.AddSensor(5 * C / 6, 2130.0)  # 6
 Locate.AddSensor(C / 2, -sp / 2)  # 7
 Locate.AddSensor(C, -sp / 2)  # 8
 Locate.AddSensor(0, h + sp / 2)  # 9
 Locate.AddSensor(C / 2, h + sp / 2)  # 10
 
-"""
-t = Locate.returnDeltaT(0, 0, range(0, 6), 'original')
-print(t)
-
-"""
 # Ponto de teste
 k = 0
 x_real = []
@@ -53,8 +51,8 @@ x_errorS = []
 y_errorS = []
 
 for block in blocks:
-    xp, yp = (block.X, block.Y)
-    # xp, yp = Locate.GetSensorCoords(block.pulser)
+    # xp, yp = (block.X, block.Y)
+    xp, yp = Locate.GetSensorCoords(block.pulser)
     x_real.append(xp)
     y_real.append(yp)
     k += 1
@@ -93,7 +91,7 @@ for block in blocks:
         print("Calculado: x: " +
             str(round(x_c[0], 4)) + " / y: " + str(round(x_c[1], 4)))
 
-        print("\n")
+    print("\n")
 
 x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
 y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]

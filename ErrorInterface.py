@@ -23,9 +23,9 @@ Locate.SetVelocity(5)
 Locate.AddSensor(0, h / 3)  # 1
 Locate.AddSensor(C / 3, h / 3)  # 2
 Locate.AddSensor(2 * C / 3, h / 3)  # 3
-Locate.AddSensor(C / 6, 2 * h / 3)  # 4
-Locate.AddSensor(C / 2, 2 * h / 3)  # 5
-Locate.AddSensor(5 * C / 6, 2 * h / 3)  # 6
+Locate.AddSensor(C / 6, 2130)  # 4
+Locate.AddSensor(C / 2, 2130)  # 5
+Locate.AddSensor(5 * C / 6, 2130)  # 6
 Locate.AddSensor(C / 2, -sp / 2)  # 7
 Locate.AddSensor(C, -sp / 2)  # 8
 Locate.AddSensor(0, h + sp / 2)  # 9
