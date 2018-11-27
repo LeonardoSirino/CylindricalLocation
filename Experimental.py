@@ -69,10 +69,12 @@ for block in blocks:
     x_s = Locate.simpleLocation(data)
     x_c = Locate.completeLocation(data)
 
-    error = Locate.ExternalCalcDist(x_c[0], x_c[1], xp, yp)
-    print("Erro do completo " + str(round(error, 3)) + " mm")
+    e_s = Locate.ExternalCalcDist(x_s[0], x_s[1], xp, yp)
+    e_c = Locate.ExternalCalcDist(x_c[0], x_c[1], xp, yp)
+    print("Erro do simplificado " + str(round(e_s, 3)) + " mm")
+    print("Erro do completo " + str(round(e_c, 3)) + " mm")
 
-    if error < 300:
+    if e_s < 300 and e_c < 300:
         x_simple.append(x_s[0])
         y_simple.append(x_s[1])
 
