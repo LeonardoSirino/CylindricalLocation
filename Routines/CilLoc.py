@@ -933,7 +933,7 @@ class CylindricalLocation():
             MeasTimes.append(TOF - t0)
 
         MeasTimes = np.array(MeasTimes)
-        gain = 1
+        gain = 5
         A = np.sqrt(self.height**2 + (self.diameter * np.pi / 2)** 2) / self.veloc
         weights = (MeasTimes - np.min(MeasTimes)) / A
         weights = np.exp(-gain * weights)

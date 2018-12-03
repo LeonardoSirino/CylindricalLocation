@@ -72,7 +72,7 @@ for block in blocks:
     print("Erro do simplificado " + str(round(e_s, 3)) + " mm")
     print("Erro do completo " + str(round(e_c, 3)) + " mm")
 
-    if e_s < 300 and e_c < 300:
+    if e_s < 300 or e_c < 300:
         x_simple.append(x_s[0])
         y_simple.append(x_s[1])
 
