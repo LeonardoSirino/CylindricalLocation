@@ -1,8 +1,9 @@
 from Routines.CilLoc import VesselPoint, CylindricalLocation
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
 
-file = open('Resultados\\linha 3.txt', 'r')
+file = open('Resultados\\linha 1.txt', 'r')
 
 # Parâmetros do vaso
 C = 2492.0
@@ -67,6 +68,10 @@ x_errorD = []
 y_errorD = []
 error_c = []
 error_d = []
+x_array = np.linspace(0, 2250, num = 10)
+data_disp = [[]] * 10
+data_calc = [[]] * 10
+
 k = 0
 for xp, yp, xd, yd, xc, yc in zip(x_real, y_real, x_disp, y_disp, x_calc, y_calc):
     k += 1
@@ -97,10 +102,20 @@ for xp, yp, xd, yd, xc, yc in zip(x_real, y_real, x_disp, y_disp, x_calc, y_calc
         error_c.append(e_c)
         error_d.append(e_d)
 
+        i = np.where(x_array == xp)[0][0]
+        data = copy.copy(data_disp[i])
+        data.append(e_d)
+        data_disp[i] = data
+
+        data = copy.copy(data_calc[i])
+        data.append(e_c)
+        data_calc[i] = data
+
+
     print("\n")
 
 file.close()
-
+"""
 x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
 y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]
 plt.plot(x_vessel, y_vessel, 'k')
@@ -116,4 +131,22 @@ plt.show()
 plt.plot(p_xreal, error_d, '.', p_xreal, error_c, '.')
 plt.legend(['Disp', 'Calculado'])
 plt.ylim((0, 300))
+plt.show()
+"""
+mean_c = []
+mean_d = []
+dp_c = []
+dp_d = []
+for d_c, d_d in zip(data_calc, data_disp):
+    mean_c.append(np.mean(d_c))
+    dp_c.append(np.std(d_c))
+    mean_d.append(np.mean(d_d))
+    dp_d.append(np.std(d_d))
+
+plt.errorbar(x_array - [10] * len(x_array), mean_d, yerr=dp_d, fmt='o')
+plt.errorbar(x_array + [10] * len(x_array), mean_c, yerr=dp_c, fmt='o')
+plt.legend(['Disp', 'Seccionamento'])
+plt.title('Linha 3')
+plt.ylabel('Erro [mm]')
+plt.xlabel('Posição X [mm]')
 plt.show()

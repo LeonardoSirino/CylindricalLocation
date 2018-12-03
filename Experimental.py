@@ -7,13 +7,13 @@ import matplotlib.pyplot as plt
 
 # Leitura dos dados experimentais
 # blocks = read_LineDisplay("Linha1_line_display", 0)
-blocks = read_AST("AST_Samos")
+blocks = read_AST("AST_Disp")
 
 # Parâmetros do vaso
 C = 2492.0
 d = C / m.pi
 h = 2700.0
-sp = 470.0
+sp = 490.0
 
 # Configurações do algoritmo
 Locate = CylindricalLocation(d, h)
@@ -95,11 +95,11 @@ for block in blocks:
 
 x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
 y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]
-plt.plot(x_vessel, y_vessel, 'g')
+plt.plot(x_vessel, y_vessel, 'k')
 plt.plot(x_real, y_real, '.', markersize=12)
 plt.plot(x_calc, y_calc, '.', markersize=12)
 plt.plot(x_simple, y_simple, '.', markersize=12)
 plt.plot(x_error, y_error, 'k--', linewidth=1)
 plt.plot(x_errorS, y_errorS, 'k--', linewidth=1)
-plt.legend(['Vaso', 'Real', 'Calc', 'Simples', 'Erro', 'Erro simples'])
+plt.legend(['Vaso', 'Real', 'Calc', 'Simples'])
 plt.show()
