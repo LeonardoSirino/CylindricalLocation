@@ -3,13 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 
-file = open('Resultados\\linha 1.txt', 'r')
+file = open('Resultados\\linha 3.txt', 'r')
 
 # Parâmetros do vaso
 C = 2492.0
 d = C / np.pi
 h = 2700.0
 sp = 490.0
+Diag = np.sqrt((C / 2)**2 + h**2)
 
 # Configurações do algoritmo
 Locate = CylindricalLocation(d, h)
@@ -99,9 +100,6 @@ for xp, yp, xd, yd, xc, yc in zip(x_real, y_real, x_disp, y_disp, x_calc, y_calc
         x_error += [xp, xc, np.nan]
         y_error += [yp, yc, np.nan]
 
-        error_c.append(e_c)
-        error_d.append(e_d)
-
         i = np.where(x_array == xp)[0][0]
         data = copy.copy(data_disp[i])
         data.append(e_d)
@@ -115,7 +113,7 @@ for xp, yp, xd, yd, xc, yc in zip(x_real, y_real, x_disp, y_disp, x_calc, y_calc
     print("\n")
 
 file.close()
-"""
+
 x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
 y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]
 plt.plot(x_vessel, y_vessel, 'k')
@@ -128,25 +126,20 @@ plt.plot(x_errorD, y_errorD, 'k--', linewidth=1)
 plt.legend(['Vaso', 'Sensores', 'Real', 'Calc', 'Disp'])
 plt.show()
 
-plt.plot(p_xreal, error_d, '.', p_xreal, error_c, '.')
-plt.legend(['Disp', 'Calculado'])
-plt.ylim((0, 300))
-plt.show()
-"""
 mean_c = []
 mean_d = []
 dp_c = []
 dp_d = []
 for d_c, d_d in zip(data_calc, data_disp):
-    mean_c.append(np.mean(d_c))
-    dp_c.append(np.std(d_c))
-    mean_d.append(np.mean(d_d))
-    dp_d.append(np.std(d_d))
+    mean_c.append(np.mean(d_c) * 100 / Diag)
+    dp_c.append(np.std(d_c) * 100 / Diag)
+    mean_d.append(np.mean(d_d) * 100 / Diag)
+    dp_d.append(np.std(d_d) * 100 / Diag)
 
-plt.errorbar(x_array - [10] * len(x_array), mean_d, yerr=dp_d, fmt='o')
-plt.errorbar(x_array + [10] * len(x_array), mean_c, yerr=dp_c, fmt='o')
+plt.errorbar(x_array - [10] * len(x_array), mean_d, yerr=dp_d, uplims=True, lolims=True, fmt='o')
+plt.errorbar(x_array + [10] * len(x_array), mean_c, yerr=dp_c, uplims=True, lolims=True, fmt='o')
 plt.legend(['Disp', 'Seccionamento'])
 plt.title('Linha 3')
-plt.ylabel('Erro [mm]')
+plt.ylabel('Erro [% diagonal]')
 plt.xlabel('Posição X [mm]')
 plt.show()
