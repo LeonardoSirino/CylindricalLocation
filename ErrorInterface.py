@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 C = 2492.0
 diameter = C / m.pi
 height = 2700.0
-semiperimeter = 510.0
+semiperimeter = 470.0
 
 h = height
 sp = semiperimeter

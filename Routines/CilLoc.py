@@ -933,7 +933,7 @@ class CylindricalLocation():
             MeasTimes.append(TOF - t0)
 
         MeasTimes = np.array(MeasTimes)
-        gain = 10
+        gain = 1
         A = np.sqrt(self.height**2 + (self.diameter * np.pi / 2)** 2) / self.veloc
         weights = (MeasTimes - np.min(MeasTimes)) / A
         weights = np.exp(-gain * weights)
@@ -941,6 +941,7 @@ class CylindricalLocation():
         def CalcResidue(x):
             tcalc = self.returnDeltaT(x[0], x[1], IDs, 'original')
             residue = np.sqrt(np.sum(((tcalc - MeasTimes) * weights / A)**2))
+            residue += 1E-10
             f = np.log10(residue)
 
             return f
@@ -948,14 +949,10 @@ class CylindricalLocation():
         # options={"gtol": 1E-4}
         bounds = [(-0.01 * self.diameter * m.pi, 1.01 * self.diameter * m.pi),
                   (-1.01 * self.SemiPerimeter, self.height + 1.01 * self.SemiPerimeter)]
-        maxiter = 1000
-        polish = True
+        maxiter = 1500
+        polish = False
 
-        """
-        res = opt.minimize(CalcResidue, x0=x0, method='L-BFGS-B', options={"gtol": 1E-4}, bounds=bounds)
-        """
-
-        res = opt.differential_evolution(CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish)
+        res = opt.differential_evolution(CalcResidue, bounds=bounds, maxiter=maxiter, polish=polish, disp=False)
 
         # print(res)  # - Resultado da otimização
 

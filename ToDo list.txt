@@ -1,3 +1,2 @@
-﻿Verificar posição dos sensores nos vasos
-Gerar sinais com o punção e com o grafite
-Otimizar cálculo da distância corpo/tampo
+﻿Otimizar cálculo da distância corpo/tampo
+Escolher outra função para a regressão do seccionamento, diminuir os erros próximos à interface casco/tampo

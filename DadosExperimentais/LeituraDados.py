@@ -12,6 +12,8 @@ class Block:
         self.dt = []
         self.X = 0
         self.Y = 0
+        self.x_disp = 0
+        self.y_disp = 0
         self.tf = 0
         self.t0 = 0
 
@@ -60,6 +62,10 @@ class Block:
     def SetCoord(self, x, y):
         self.X = x
         self.Y = y
+
+    def Set_dispCoord(self, x, y):
+        self.x_disp = x
+        self.y_disp = y
 
     def __str__(self):
         text = "PUlSER: " + str(self.pulser) + " --- X: " + \
@@ -125,10 +131,12 @@ def read_AST(file_name):
     return blocks
 
 
-def read_LineDisplayGroup(file_name):
+def read_LineDisplayGroup(file_name, y_real):
     cwd = os.getcwd()
     filePath = cwd + "\\DadosExperimentais\\Arquivos\\" + file_name + ".txt"
     file = open(filePath, "r")
+    x_real = 0
+    dx = 250
 
     flag = True
     k = 0
@@ -156,11 +164,16 @@ def read_LineDisplayGroup(file_name):
             kn = line.find(",", ki)
             x = float(line[(ki + 3):kn])
             ki = line.find("y =")
-            kn = line.find("dT", ki)
+            kn = line.find(", q", ki)
             y = float(line[(ki + 3):kn])
 
-            current_block.SetCoord(x, y)
+            current_block.SetCoord(x_real, y_real)
+            current_block.Set_dispCoord(x, y)
             k += 1
+
+        elif line[:3] == "211":
+            if line.find('Time Mark') != -1:
+                x_real += dx
 
         elif line == "":
             flag = False
@@ -177,7 +190,6 @@ def read_LineDisplay(file_name, y):
     dx = 250
 
     flag = True
-    k = 0
     while flag:
         line = file.readline()
         if line[:3] == "  1":

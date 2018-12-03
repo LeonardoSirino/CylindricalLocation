@@ -1,0 +1,625 @@
+Ponto1
+Real: x: 0 / y: -150.0
+Disp: x: 0.0 / y: 1350.0
+Calculado: x: 2344.9455 / y: 1572.1207
+
+Ponto2
+Real: x: 0 / y: -150.0
+Disp: x: 564.4 / y: -135.0
+Calculado: x: 829.4251 / y: -80.7711
+
+Ponto3
+Real: x: 0 / y: -150.0
+Disp: x: 2043.0 / y: 1215.0
+Calculado: x: 1260.3663 / y: 2553.2683
+
+Ponto4
+Real: x: 0 / y: -150.0
+Disp: x: 91.05 / y: 566.5
+Calculado: x: 1902.2923 / y: 698.3405
+
+Ponto5
+Real: x: 0 / y: -150.0
+Disp: x: 1225.0 / y: 1916.0
+Calculado: x: 1241.6692 / y: 2802.5593
+
+Ponto6
+Real: x: 250 / y: -150.0
+Disp: x: 274.8 / y: -64.8
+Calculado: x: 237.0518 / y: -143.4696
+
+Ponto7
+Real: x: 250 / y: -150.0
+Disp: x: 491.5 / y: 2313.0
+Calculado: x: 2407.5252 / y: 1764.2152
+
+Ponto8
+Real: x: 250 / y: -150.0
+Disp: x: 243.9 / y: -57.69
+Calculado: x: 213.631 / y: -131.6357
+
+Ponto9
+Real: x: 250 / y: -150.0
+Disp: x: 274.6 / y: -64.24
+Calculado: x: 236.4652 / y: -141.4519
+
+Ponto10
+Real: x: 250 / y: -150.0
+Disp: x: 290.2 / y: -65.88
+Calculado: x: 253.1272 / y: -148.116
+
+Ponto11
+Real: x: 250 / y: -150.0
+Disp: x: 419.4 / y: 2331.0
+Calculado: x: 2336.4791 / y: 1822.9943
+
+Ponto12
+Real: x: 250 / y: -150.0
+Disp: x: 283.7 / y: -72.74
+Calculado: x: 255.2993 / y: -168.2129
+
+Ponto13
+Real: x: 500 / y: -150.0
+Disp: x: 362.0 / y: 1277.0
+Calculado: x: 2003.1908 / y: -205.0016
+
+Ponto14
+Real: x: 500 / y: -150.0
+Disp: x: 2426.0 / y: 1704.0
+Calculado: x: 1319.2857 / y: 1430.3705
+
+Ponto15
+Real: x: 500 / y: -150.0
+Disp: x: 517.1 / y: -67.03
+Calculado: x: 1972.5342 / y: 188.944
+
+Ponto16
+Real: x: 500 / y: -150.0
+Disp: x: 1864.0 / y: 2728.0
+Calculado: x: 582.6821 / y: 2365.7151
+
+Ponto17
+Real: x: 750 / y: -150.0
+Disp: x: 734.4 / y: -66.2
+Calculado: x: 759.5911 / y: -159.1005
+
+Ponto18
+Real: x: 750 / y: -150.0
+Disp: x: 1661.0 / y: -8.822
+Calculado: x: 1683.5549 / y: -212.4401
+
+Ponto19
+Real: x: 750 / y: -150.0
+Disp: x: 750.3 / y: -71.49
+Calculado: x: 776.3743 / y: -169.3639
+
+Ponto20
+Real: x: 750 / y: -150.0
+Disp: x: 727.4 / y: -65.67
+Calculado: x: 747.8675 / y: -162.5466
+
+Ponto21
+Real: x: 750 / y: -150.0
+Disp: x: 727.9 / y: -66.37
+Calculado: x: 750.2304 / y: -163.924
+
+Ponto22
+Real: x: 750 / y: -150.0
+Disp: x: 208.0 / y: 2321.0
+Calculado: x: 2489.9646 / y: 2159.7114
+
+Ponto23
+Real: x: 750 / y: -150.0
+Disp: x: 830.2 / y: 114.5
+Calculado: x: 824.5173 / y: 195.7138
+
+Ponto24
+Real: x: 750 / y: -150.0
+Disp: x: 339.4 / y: 1464.0
+Calculado: x: 838.5248 / y: 1570.0236
+
+Ponto25
+Real: x: 750 / y: -150.0
+Disp: x: 728.7 / y: -63.39
+Calculado: x: 757.0431 / y: -154.7227
+
+Ponto26
+Real: x: 750 / y: -150.0
+Disp: x: 2413.0 / y: 1287.0
+Calculado: x: 93.9355 / y: 2473.2692
+
+Ponto27
+Real: x: 1000 / y: -150.0
+Disp: x: 135.4 / y: 2637.0
+Calculado: x: 1245.2377 / y: 130.0768
+
+Ponto28
+Real: x: 1000 / y: -150.0
+Disp: x: 1372.0 / y: 3987.0
+Calculado: x: 1047.5854 / y: 2.9269
+
+Ponto29
+Real: x: 1000 / y: -150.0
+Disp: x: 754.0 / y: 5337.0
+Calculado: x: 1050.987 / y: 6.0329
+
+Ponto30
+Real: x: 1000 / y: -150.0
+Disp: x: 1246.0 / y: 188.6
+Calculado: x: 1246.8644 / y: 178.0905
+
+Ponto31
+Real: x: 1000 / y: -150.0
+Disp: x: 1033.0 / y: 648.1
+Calculado: x: 1152.8936 / y: 608.6121
+
+Ponto32
+Real: x: 1000 / y: -150.0
+Disp: x: 1023.0 / y: 1998.0
+Calculado: x: 1444.4146 / y: 2.9269
+
+Ponto33
+Real: x: 1250 / y: -150.0
+Disp: x: 1970.0 / y: 3348.0
+Calculado: x: 0.183 / y: 1167.8383
+
+Ponto34
+Real: x: 1250 / y: -150.0
+Disp: x: 321.8 / y: 2381.0
+Calculado: x: 361.1439 / y: 2463.1266
+
+Ponto35
+Real: x: 1250 / y: -150.0
+Disp: x: 2076.0 / y: 417.8
+Calculado: x: 2076.429 / y: 293.233
+
+Ponto36
+Real: x: 1250 / y: -150.0
+Disp: x: 830.4 / y: 1851.0
+Calculado: x: 829.6062 / y: 1902.3001
+
+Ponto37
+Real: x: 1250 / y: -150.0
+Disp: x: 1929.0 / y: 1807.0
+Calculado: x: 2074.2979 / y: 2123.3902
+
+Ponto38
+Real: x: 1250 / y: -150.0
+Disp: x: 1875.0 / y: 2177.0
+Calculado: x: 1874.5454 / y: 2179.4829
+
+Ponto39
+Real: x: 1250 / y: -150.0
+Disp: x: 1872.0 / y: 1665.0
+Calculado: x: 190.7625 / y: 1972.8727
+
+Ponto40
+Real: x: 1250 / y: -150.0
+Disp: x: 581.8 / y: 2292.0
+Calculado: x: 445.1207 / y: 1895.0308
+
+Ponto41
+Real: x: 1250 / y: -150.0
+Disp: x: 1539.0 / y: 1423.0
+Calculado: x: 1565.384 / y: 1415.9445
+
+Ponto42
+Real: x: 1250 / y: -150.0
+Disp: x: 725.8 / y: 1343.0
+Calculado: x: 2135.0713 / y: 1555.1533
+
+Ponto43
+Real: x: 1250 / y: -150.0
+Disp: x: 1272.0 / y: 2693.0
+Calculado: x: 857.8221 / y: 1235.1874
+
+Ponto44
+Real: x: 1250 / y: -150.0
+Disp: x: 1080.0 / y: 4043.0
+Calculado: x: 1864.8667 / y: 1601.3262
+
+Ponto45
+Real: x: 1250 / y: -150.0
+Disp: x: 2396.0 / y: 5393.0
+Calculado: x: -0.306 / y: 1487.2036
+
+Ponto46
+Real: x: 1250 / y: -150.0
+Disp: x: 793.7 / y: 6743.0
+Calculado: x: 2498.8496 / y: 2306.0132
+
+Ponto47
+Real: x: 1250 / y: -150.0
+Disp: x: 1238.0 / y: -69.91
+Calculado: x: 1215.0051 / y: -135.4272
+
+Ponto48
+Real: x: 1250 / y: -150.0
+Disp: x: 1207.0 / y: -68.83
+Calculado: x: 81.7442 / y: -406.0368
+
+Ponto49
+Real: x: 1250 / y: -150.0
+Disp: x: 1207.0 / y: -68.83
+Calculado: x: 81.7442 / y: -406.0368
+
+Ponto50
+Real: x: 1250 / y: -150.0
+Disp: x: 2296.0 / y: 2172.0
+Calculado: x: 36.5554 / y: 1893.912
+
+Ponto51
+Real: x: 1250 / y: -150.0
+Disp: x: 1207.0 / y: -69.25
+Calculado: x: 81.7442 / y: -406.0368
+
+Ponto52
+Real: x: 1250 / y: -150.0
+Disp: x: 439.0 / y: -11.09
+Calculado: x: 347.4718 / y: -34.759
+
+Ponto53
+Real: x: 1250 / y: -150.0
+Disp: x: 830.4 / y: -67.09
+Calculado: x: 831.514 / y: 68.7801
+
+Ponto54
+Real: x: 1500 / y: -150.0
+Disp: x: 1479.0 / y: -59.87
+Calculado: x: 1440.2601 / y: -136.0786
+
+Ponto55
+Real: x: 1500 / y: -150.0
+Disp: x: 846.4 / y: 2466.0
+Calculado: x: 1501.6659 / y: 1813.1559
+
+Ponto56
+Real: x: 1500 / y: -150.0
+Disp: x: 1491.0 / y: -58.13
+Calculado: x: 1446.986 / y: -131.8035
+
+Ponto57
+Real: x: 1500 / y: -150.0
+Disp: x: 845.7 / y: 2498.0
+Calculado: x: 1511.8643 / y: 1864.7085
+
+Ponto58
+Real: x: 1500 / y: -150.0
+Disp: x: 1492.0 / y: -58.35
+Calculado: x: 1448.2325 / y: -132.5002
+
+Ponto59
+Real: x: 1500 / y: -150.0
+Disp: x: 1479.0 / y: -60.44
+Calculado: x: 1438.3084 / y: -136.1923
+
+Ponto60
+Real: x: 1500 / y: -150.0
+Disp: x: 1494.0 / y: -59.02
+Calculado: x: 1449.8441 / y: -134.0472
+
+Ponto61
+Real: x: 1750 / y: -150.0
+Disp: x: 2361.0 / y: 1919.0
+Calculado: x: 2355.8838 / y: 1930.2438
+
+Ponto62
+Real: x: 1750 / y: -150.0
+Disp: x: 607.5 / y: 598.1
+Calculado: x: 1898.1328 / y: 1565.7873
+
+Ponto63
+Real: x: 1750 / y: -150.0
+Disp: x: 400.3 / y: -52.29
+Calculado: x: 2275.7623 / y: -36.0153
+
+Ponto64
+Real: x: 1750 / y: -150.0
+Disp: x: 1757.0 / y: 1298.0
+Calculado: x: 1695.2546 / y: 2831.7946
+
+Ponto65
+Real: x: 1750 / y: -150.0
+Disp: x: 1441.0 / y: 2648.0
+Calculado: x: 1246.4439 / y: 667.5519
+
+Ponto66
+Real: x: 1750 / y: -150.0
+Disp: x: 750.4 / y: 3998.0
+Calculado: x: 2492.2989 / y: 1230.369
+
+Ponto67
+Real: x: 1750 / y: -150.0
+Disp: x: 54.04 / y: 2191.0
+Calculado: x: 1248.7441 / y: 2295.4075
+
+Ponto68
+Real: x: 1750 / y: -150.0
+Disp: x: 12.73 / y: 1262.0
+Calculado: x: 96.447 / y: 1267.3498
+
+Ponto69
+Real: x: 1750 / y: -150.0
+Disp: x: 65.99 / y: 2612.0
+Calculado: x: 1.5102 / y: 1311.243
+
+Ponto70
+Real: x: 1750 / y: -150.0
+Disp: x: 1252.0 / y: 3962.0
+Calculado: x: 1845.2239 / y: 1963.6472
+
+Ponto71
+Real: x: 1750 / y: -150.0
+Disp: x: 1661.0 / y: 1787.0
+Calculado: x: 1661.4085 / y: 1503.9662
+
+Ponto72
+Real: x: 1750 / y: -150.0
+Disp: x: 2076.0 / y: 1587.0
+Calculado: x: 2078.4725 / y: 1592.4821
+
+Ponto73
+Real: x: 1750 / y: -150.0
+Disp: x: 2411.0 / y: 2383.0
+Calculado: x: 1311.0785 / y: 2446.2115
+
+Ponto74
+Real: x: 1750 / y: -150.0
+Disp: x: 1943.0 / y: 3733.0
+Calculado: x: 118.643 / y: 1230.3244
+
+Ponto75
+Real: x: 1750 / y: -150.0
+Disp: x: 508.6 / y: 2045.0
+Calculado: x: 2004.998 / y: 1778.5706
+
+Ponto76
+Real: x: 1750 / y: -150.0
+Disp: x: 1478.0 / y: 277.6
+Calculado: x: 1510.6599 / y: 286.217
+
+Ponto77
+Real: x: 1750 / y: -150.0
+Disp: x: 0.3566 / y: 1106.0
+Calculado: x: 2492.9386 / y: 1109.44
+
+Ponto78
+Real: x: 1750 / y: -150.0
+Disp: x: 1997.0 / y: 2181.0
+Calculado: x: 2009.6757 / y: 2216.4281
+
+Ponto79
+Real: x: 1750 / y: -150.0
+Disp: x: 348.4 / y: 1575.0
+Calculado: x: 1650.5977 / y: 2126.4311
+
+Ponto80
+Real: x: 1750 / y: -150.0
+Disp: x: 1911.0 / y: 1894.0
+Calculado: x: 1916.6061 / y: 1900.1236
+
+Ponto81
+Real: x: 1750 / y: -150.0
+Disp: x: 2487.0 / y: 1893.0
+Calculado: x: 1649.9658 / y: 1329.7963
+
+Ponto82
+Real: x: 1750 / y: -150.0
+Disp: x: 0.355 / y: 1182.0
+Calculado: x: 2491.9555 / y: 1182.2684
+
+Ponto83
+Real: x: 1750 / y: -150.0
+Disp: x: 830.3 / y: -97.19
+Calculado: x: 832.6504 / y: -209.4258
+
+Ponto84
+Real: x: 1750 / y: -150.0
+Disp: x: 1294.0 / y: 2136.0
+Calculado: x: 1296.5323 / y: 2129.5269
+
+Ponto85
+Real: x: 1750 / y: -150.0
+Disp: x: 1696.0 / y: 1623.0
+Calculado: x: 381.7261 / y: 2112.8207
+
+Ponto86
+Real: x: 1750 / y: -150.0
+Disp: x: 1385.0 / y: 2323.0
+Calculado: x: 843.0407 / y: 1115.4985
+
+Ponto87
+Real: x: 1750 / y: -150.0
+Disp: x: 1588.0 / y: 908.5
+Calculado: x: 1595.6669 / y: 1023.4987
+
+Ponto88
+Real: x: 1750 / y: -150.0
+Disp: x: 2076.0 / y: 1612.0
+Calculado: x: 2076.0949 / y: 1734.0723
+
+Ponto89
+Real: x: 1750 / y: -150.0
+Disp: x: 862.1 / y: 2962.0
+Calculado: x: 35.3998 / y: 1799.4489
+
+Ponto90
+Real: x: 1750 / y: -150.0
+Disp: x: 526.2 / y: 4312.0
+Calculado: x: 1245.4945 / y: 579.1441
+
+Ponto91
+Real: x: 1750 / y: -150.0
+Disp: x: 1151.0 / y: 1853.0
+Calculado: x: 1104.3503 / y: 1855.3757
+
+Ponto92
+Real: x: 1750 / y: -150.0
+Disp: x: 830.3 / y: 993.7
+Calculado: x: 827.6958 / y: 990.8121
+
+Ponto93
+Real: x: 1750 / y: -150.0
+Disp: x: 1661.0 / y: 1920.0
+Calculado: x: 1661.4312 / y: 1950.288
+
+Ponto94
+Real: x: 1750 / y: -150.0
+Disp: x: 2256.0 / y: 2369.0
+Calculado: x: 1448.5597 / y: 2401.6976
+
+Ponto95
+Real: x: 1750 / y: -150.0
+Disp: x: 2076.0 / y: 1763.0
+Calculado: x: 2068.0961 / y: 1768.9013
+
+Ponto96
+Real: x: 1750 / y: -150.0
+Disp: x: 1661.0 / y: 1117.0
+Calculado: x: 1657.6381 / y: 1151.8701
+
+Ponto97
+Real: x: 1750 / y: -150.0
+Disp: x: 1883.0 / y: 2811.0
+Calculado: x: 1986.9393 / y: 2777.9859
+
+Ponto98
+Real: x: 1750 / y: -150.0
+Disp: x: 1906.0 / y: 4161.0
+Calculado: x: 2398.3306 / y: -162.6859
+
+Ponto99
+Real: x: 1750 / y: -150.0
+Disp: x: 403.0 / y: 2483.0
+Calculado: x: 2076.7002 / y: 2743.5206
+
+Ponto100
+Real: x: 1750 / y: -150.0
+Disp: x: 1339.0 / y: 2064.0
+Calculado: x: 355.6912 / y: 2381.0646
+
+Ponto101
+Real: x: 1750 / y: -150.0
+Disp: x: 250.2 / y: 3414.0
+Calculado: x: 269.7462 / y: 1685.2209
+
+Ponto102
+Real: x: 1750 / y: -150.0
+Disp: x: 2056.0 / y: 4764.0
+Calculado: x: 221.4012 / y: 2298.0275
+
+Ponto103
+Real: x: 1750 / y: -150.0
+Disp: x: 577.6 / y: 6114.0
+Calculado: x: 1244.9082 / y: 461.5145
+
+Ponto104
+Real: x: 1750 / y: -150.0
+Disp: x: 1745.0 / y: -63.47
+Calculado: x: 753.2825 / y: 85.7503
+
+Ponto105
+Real: x: 1750 / y: -150.0
+Disp: x: 1736.0 / y: -60.26
+Calculado: x: 1707.0323 / y: -146.3623
+
+Ponto106
+Real: x: 1750 / y: -150.0
+Disp: x: 1735.0 / y: -61.24
+Calculado: x: 760.9491 / y: 87.6878
+
+Ponto107
+Real: x: 1750 / y: -150.0
+Disp: x: 1734.0 / y: -61.24
+Calculado: x: 1703.8153 / y: -147.1904
+
+Ponto108
+Real: x: 1750 / y: -150.0
+Disp: x: 1735.0 / y: -62.34
+Calculado: x: 761.152 / y: 85.3974
+
+Ponto109
+Real: x: 1750 / y: -150.0
+Disp: x: 1543.0 / y: 2777.0
+Calculado: x: 1529.7469 / y: 2865.268
+
+Ponto110
+Real: x: 1750 / y: -150.0
+Disp: x: 1313.0 / y: 4127.0
+Calculado: x: 2492.0504 / y: 1571.1965
+
+Ponto111
+Real: x: 2000 / y: -150.0
+Disp: x: 1969.0 / y: -87.95
+Calculado: x: 528.7843 / y: 127.5983
+
+Ponto112
+Real: x: 2000 / y: -150.0
+Disp: x: 1969.0 / y: -86.61
+Calculado: x: 1993.4318 / y: -192.6175
+
+Ponto113
+Real: x: 2000 / y: -150.0
+Disp: x: 1962.0 / y: -62.0
+Calculado: x: 1981.7659 / y: -141.4036
+
+Ponto114
+Real: x: 2000 / y: -150.0
+Disp: x: 1238.0 / y: 1991.0
+Calculado: x: 1624.9971 / y: 2652.9943
+
+Ponto115
+Real: x: 2000 / y: -150.0
+Disp: x: 1968.0 / y: -87.65
+Calculado: x: 1990.5768 / y: -194.2379
+
+Ponto116
+Real: x: 2000 / y: -150.0
+Disp: x: 1972.0 / y: -82.11
+Calculado: x: 717.5291 / y: -111.8516
+
+Ponto117
+Real: x: 2000 / y: -150.0
+Disp: x: 748.7 / y: 1802.0
+Calculado: x: 752.0854 / y: 1793.5871
+
+Ponto118
+Real: x: 2000 / y: -150.0
+Disp: x: 781.8 / y: 1743.0
+Calculado: x: 783.6141 / y: 1771.1117
+
+Ponto119
+Real: x: 2000 / y: -150.0
+Disp: x: 1055.0 / y: 3093.0
+Calculado: x: 0.2223 / y: 468.161
+
+Ponto120
+Real: x: 2250 / y: -150.0
+Disp: x: 2207.0 / y: -94.17
+Calculado: x: 2271.4667 / y: -204.8986
+
+Ponto121
+Real: x: 2250 / y: -150.0
+Disp: x: 1141.0 / y: 812.8
+Calculado: x: 1162.4618 / y: 866.4636
+
+Ponto122
+Real: x: 2250 / y: -150.0
+Disp: x: 1947.0 / y: 1162.0
+Calculado: x: 1896.1793 / y: 1275.4214
+
+Ponto123
+Real: x: 2250 / y: -150.0
+Disp: x: 1947.0 / y: 1162.0
+Calculado: x: 1891.992 / y: 1276.5048
+
+Ponto124
+Real: x: 2250 / y: -150.0
+Disp: x: 1947.0 / y: 1162.0
+Calculado: x: 1896.1726 / y: 1273.5527
+
+Ponto125
+Real: x: 2250 / y: -150.0
+Disp: x: 311.0 / y: 1845.0
+Calculado: x: 1015.0824 / y: 1955.403
+
