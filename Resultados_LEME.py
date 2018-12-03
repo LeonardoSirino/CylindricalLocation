@@ -5,6 +5,32 @@ import copy
 
 file = open('Resultados\\linha 3.txt', 'r')
 
+
+def lenghtByHeight(z0):
+    if z0 < 0:
+        global d
+        global f
+
+        s = 0
+        z = 0
+        x = -d / 2
+        a = d / 2
+        dx = a * 0.00005
+        while z < abs(z0):
+            xi = x + dx
+            zi = np.sqrt(1 - xi**2 / a**2) * a * f
+            dz = zi - z
+            ds = np.sqrt(dx**2 + dz**2)
+            s += ds
+            z = zi
+            x = xi
+
+        return -s
+
+    else:
+        return z0
+
+
 # Parâmetros do vaso
 C = 2492.0
 d = C / np.pi
@@ -15,6 +41,7 @@ Diag = np.sqrt((C / 2)**2 + h**2)
 # Configurações do algoritmo
 Locate = CylindricalLocation(d, h)
 Locate.set_semiPerimeter(sp)
+f = Locate.f
 Locate.setCalcMode('section')
 Locate.setSectionMode('reg')
 Locate.SetVelocity(3.2)  # mm / us = km / s
@@ -69,12 +96,13 @@ x_errorD = []
 y_errorD = []
 error_c = []
 error_d = []
-x_array = np.linspace(0, 2250, num = 10)
+x_array = np.linspace(0, 2250, num=10)
 data_disp = [[]] * 10
 data_calc = [[]] * 10
 
 k = 0
 for xp, yp, xd, yd, xc, yc in zip(x_real, y_real, x_disp, y_disp, x_calc, y_calc):
+    yd = lenghtByHeight(yd)
     k += 1
     e_d = Locate.ExternalCalcDist(xd, yd, xp, yp)
     e_c = Locate.ExternalCalcDist(xc, yc, xp, yp)
@@ -109,7 +137,6 @@ for xp, yp, xd, yd, xc, yc in zip(x_real, y_real, x_disp, y_disp, x_calc, y_calc
         data.append(e_c)
         data_calc[i] = data
 
-
     print("\n")
 
 file.close()
@@ -136,8 +163,10 @@ for d_c, d_d in zip(data_calc, data_disp):
     mean_d.append(np.mean(d_d) * 100 / Diag)
     dp_d.append(np.std(d_d) * 100 / Diag)
 
-plt.errorbar(x_array - [10] * len(x_array), mean_d, yerr=dp_d, uplims=True, lolims=True, fmt='o')
-plt.errorbar(x_array + [10] * len(x_array), mean_c, yerr=dp_c, uplims=True, lolims=True, fmt='o')
+plt.errorbar(x_array - [10] * len(x_array), mean_d,
+             yerr=dp_d, uplims=True, lolims=True, fmt='o')
+plt.errorbar(x_array + [10] * len(x_array), mean_c,
+             yerr=dp_c, uplims=True, lolims=True, fmt='o')
 plt.legend(['Disp', 'Seccionamento'])
 plt.title('Linha 3')
 plt.ylabel('Erro [% diagonal]')
