@@ -1,0 +1,50 @@
+Ponto 1
+Real: x: 0 / y: 900.0
+Simples: x: 9.8988 / y: 899.6277
+Calculado: x: 9.0012 / y: 900.5518
+
+Ponto 2
+Real: x: 830.6667 / y: 900.0
+Simples: x: 816.5176 / y: 891.3637
+Calculado: x: 815.7043 / y: 895.0304
+
+Ponto 3
+Real: x: 1661.3333 / y: 900.0
+Simples: x: 1646.1479 / y: 899.9961
+Calculado: x: 1640.6636 / y: 900.0509
+
+Ponto 4
+Real: x: 415.3333 / y: 2130.0
+Simples: x: 417.2265 / y: 2135.6518
+Calculado: x: 415.9532 / y: 2131.4795
+
+Ponto 5
+Real: x: 1246.0 / y: 2130.0
+Simples: x: 1253.5171 / y: 2141.0959
+Calculado: x: 1252.8352 / y: 2131.4486
+
+Ponto 6
+Real: x: 2076.6667 / y: 2130.0
+Simples: x: 2066.8071 / y: 2158.9819
+Calculado: x: 2068.0883 / y: 2154.6513
+
+Ponto 7
+Real: x: 1246.0 / y: -245.0
+Simples: x: 1184.7843 / y: -494.9
+Calculado: x: 1251.2679 / y: -204.5041
+
+Ponto 8
+Real: x: 2492.0 / y: -245.0
+Simples: x: 104.3765 / y: -494.9
+Calculado: x: 1.4318 / y: -249.1156
+
+Ponto 9
+Real: x: 0 / y: 2945.0
+Simples: x: 161.419 / y: 3194.9
+Calculado: x: 2492.7642 / y: 2939.7136
+
+Ponto 10
+Real: x: 1246.0 / y: 2945.0
+Simples: x: 1149.2477 / y: 3194.9
+Calculado: x: 1235.4789 / y: 2913.0561
+

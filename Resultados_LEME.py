@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 
-file = open('Resultados\\linha 3.txt', 'r')
+file = open('Resultados\\linha 1.txt', 'r')
 
 
 def lenghtByHeight(z0):
@@ -144,13 +144,30 @@ file.close()
 x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
 y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]
 plt.plot(x_vessel, y_vessel, 'k')
-plt.plot(x_sensor, y_sensor, '.', markersize=12)
-plt.plot(x_real, y_real, '.', markersize=12)
-plt.plot(p_xcalc, p_ycalc, '.', markersize=12)
-plt.plot(p_xdisp, p_ydisp, '.', markersize=12)
+plt.plot(x_sensor, y_sensor, 'y.', markersize=12)
+plt.plot(x_real, y_real, 'g.', markersize=12)
+plt.plot(p_xcalc, p_ycalc, 'b.', markersize=12)
+plt.plot(p_xdisp, p_ydisp, 'r.', markersize=12)
 plt.plot(x_error, y_error, 'k--', linewidth=1)
 plt.plot(x_errorD, y_errorD, 'k--', linewidth=1)
-plt.legend(['Vaso', 'Sensores', 'Real', 'Calc', 'Disp'])
+plt.legend(['Vaso', 'Sensores', 'Real', 'Calc', 'Disp'], loc=1)
+plt.xlabel('Posição x [mm]')
+plt.ylabel('Posição y [mm]')
+plt.show()
+
+x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
+y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]
+plt.plot(x_vessel, y_vessel, 'k')
+plt.plot(x_sensor, y_sensor, 'y.', markersize=12)
+plt.plot(x_real, y_real, 'g.', markersize=12)
+plt.plot(p_xcalc, p_ycalc, 'b.', markersize=12)
+plt.plot(p_xdisp, p_ydisp, 'r.', markersize=12)
+plt.plot(x_error, y_error, 'k--', linewidth=1)
+plt.plot(x_errorD, y_errorD, 'k--', linewidth=1)
+plt.legend(['Vaso', 'Sensores', 'Real', 'Calc', 'Disp'], loc=1)
+plt.ylim((-300, 300))
+plt.xlabel('Posição x [mm]')
+plt.ylabel('Posição y [mm]')
 plt.show()
 
 mean_c = []
@@ -164,11 +181,10 @@ for d_c, d_d in zip(data_calc, data_disp):
     dp_d.append(np.std(d_d) * 100 / Diag)
 
 plt.errorbar(x_array - [10] * len(x_array), mean_d,
-             yerr=dp_d, uplims=True, lolims=True, fmt='o')
+             yerr=dp_d, uplims=True, lolims=True, fmt='ro')
 plt.errorbar(x_array + [10] * len(x_array), mean_c,
-             yerr=dp_c, uplims=True, lolims=True, fmt='o')
-plt.legend(['Disp', 'Seccionamento'])
-plt.title('Linha 3')
+             yerr=dp_c, uplims=True, lolims=True, fmt='bo')
+plt.legend(['Disp', 'Seccionamento'], loc=1)
 plt.ylabel('Erro [% diagonal]')
 plt.xlabel('Posição X [mm]')
 plt.show()

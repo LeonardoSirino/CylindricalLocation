@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 
 # Leitura dos dados experimentais
 # blocks = read_LineDisplay("Linha1_line_display", 0)
-blocks = read_AST("AST_Disp")
+blocks = read_AST("AST_Samos")
+file = open('temp.txt', 'w')
 
 # Parâmetros do vaso
 C = 2492.0
@@ -66,11 +67,22 @@ for block in blocks:
 
     x_s = Locate.simpleLocation(data)
     x_c = Locate.completeLocation(data)
+    xs, ys = x_s[0], x_s[1]
+    xc, yc = x_c[0], x_c[1]
 
     e_s = Locate.ExternalCalcDist(x_s[0], x_s[1], xp, yp)
     e_c = Locate.ExternalCalcDist(x_c[0], x_c[1], xp, yp)
     print("Erro do simplificado " + str(round(e_s, 3)) + " mm")
     print("Erro do completo " + str(round(e_c, 3)) + " mm")
+
+    file.write('Ponto ' + str(k) + '\n')
+    file.write("Real: x: " + str(round(xp, 4)) +
+               " / y: " + str(round(yp, 4)) + '\n')
+    file.write("Simples: x: " + str(round(xs, 4)) +
+               " / y: " + str(round(ys, 4)) + '\n')
+    file.write("Calculado: x: " + str(round(xc, 4)) +
+               " / y: " + str(round(yc, 4)) + '\n')
+    file.write('\n')
 
     if e_s < 300 or e_c < 300:
         x_simple.append(x_s[0])
@@ -80,7 +92,7 @@ for block in blocks:
         y_errorS += [yp, x_s[1], np.nan]
 
         print("Simples: x: " + str(round(x_s[0], 4)
-                                ) + " / y: " + str(round(x_s[1], 4)))
+                                   ) + " / y: " + str(round(x_s[1], 4)))
 
         x_calc.append(x_c[0])
         y_calc.append(x_c[1])
@@ -89,16 +101,17 @@ for block in blocks:
         y_error += [yp, x_c[1], np.nan]
 
         print("Calculado: x: " +
-            str(round(x_c[0], 4)) + " / y: " + str(round(x_c[1], 4)))
+              str(round(x_c[0], 4)) + " / y: " + str(round(x_c[1], 4)))
 
     print("\n")
 
+file.close()
 x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
 y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]
 plt.plot(x_vessel, y_vessel, 'k')
-plt.plot(x_real, y_real, '.', markersize=12)
-plt.plot(x_calc, y_calc, '.', markersize=12)
-plt.plot(x_simple, y_simple, '.', markersize=12)
+plt.plot(x_real, y_real, 'g.', markersize=12)
+plt.plot(x_calc, y_calc, 'b.', markersize=12)
+plt.plot(x_simple, y_simple, 'r.', markersize=12)
 plt.plot(x_error, y_error, 'k--', linewidth=1)
 plt.plot(x_errorS, y_errorS, 'k--', linewidth=1)
 plt.legend(['Vaso', 'Real', 'Calc', 'Simples'])
