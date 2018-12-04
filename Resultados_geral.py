@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 
-file = open('Resultados\\ErrorEvaluation.txt', 'r')
+file = open('Resultados\\ErrorVertical.txt', 'r')
 
 # Parâmetros do vaso
 C = 2492.0
@@ -31,8 +31,8 @@ x_real = []
 y_real = []
 x_calc = []
 y_calc = []
-x_disp = []
-y_disp = []
+x_simple = []
+y_simple = []
 
 line = " "
 while line != "":
@@ -48,8 +48,8 @@ while line != "":
         ki = line.find(' / y: ')
         x = float(line[12:ki])
         y = float(line[ki + 6:])
-        x_disp.append(x)
-        y_disp.append(y)
+        x_simple.append(x)
+        y_simple.append(y)
 
     elif line[:9] == 'Calculado':
         ki = line.find(' / y: ')
@@ -69,19 +69,22 @@ y_error = []
 x_errorD = []
 y_errorD = []
 error_c = []
-error_d = []
+error_s = []
 
 k = 0
-for xp, yp, xs, ys, xc, yc in zip(x_real, y_real, x_disp, y_disp, x_calc, y_calc):
+for xp, yp, xs, ys, xc, yc in zip(x_real, y_real, x_simple, y_simple, x_calc, y_calc):
     k += 1
-    e_d = Locate.ExternalCalcDist(xs, ys, xp, yp)
+    e_s = Locate.ExternalCalcDist(xs, ys, xp, yp)
     e_c = Locate.ExternalCalcDist(xc, yc, xp, yp)
+    error_c.append(e_c * 100 / Diag)
+    error_s.append(e_s * 100 / Diag)
     print('Ponto ' + str(k))
-    print("Erro do Disp " + str(round(e_d, 3)) + " mm")
+    print("Erro do simples " + str(round(e_s, 3)) + " mm")
     print("Erro do calculado " + str(round(e_c, 3)) + " mm")
 
-    cond1 = e_d < 300 and e_c < 300
-    cond2 = e_d < 0 or e_c < 0
+    cond1 = e_s < 300 and e_c < 300
+    cond1 = True
+    cond2 = e_s < 0 or e_c < 0
     if cond1 or cond2:
         p_xreal.append(xp)
         p_yreal.append(yp)
@@ -109,9 +112,15 @@ plt.plot(x_vessel, y_vessel, 'k')
 plt.plot(x_real, y_real, 'g.', markersize=12)
 plt.plot(p_xcalc, p_ycalc, 'b.', markersize=12)
 plt.plot(p_xsimple, p_ysimple, 'r.', markersize=12)
-plt.plot(x_error, y_error, 'k--', linewidth=1)
-plt.plot(x_errorD, y_errorD, 'k--', linewidth=1)
+plt.plot(x_error, y_error, 'b--', linewidth=1)
+plt.plot(x_errorD, y_errorD, 'r--', linewidth=1)
 plt.legend(['Vaso', 'Real', 'Calc', 'Simples'], loc=1)
 plt.xlabel('Posição x [mm]')
 plt.ylabel('Posição y [mm]')
+plt.show()
+
+plt.plot(y_real, error_s, 'r', y_real, error_c, 'b')
+plt.legend(["Planificado", "Seccionamento"], loc=1)
+plt.ylabel("Erro de posição [% diagonal do vaso]")
+plt.xlabel("Altura [mm]")
 plt.show()
