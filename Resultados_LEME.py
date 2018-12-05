@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 
-file = open('Resultados\\linha 1.txt', 'r')
+file = open('Resultados\\linha 3.txt', 'r')
 
 
 def lenghtByHeight(z0):
@@ -150,7 +150,7 @@ plt.plot(p_xcalc, p_ycalc, 'b.', markersize=12)
 plt.plot(p_xdisp, p_ydisp, 'r.', markersize=12)
 plt.plot(x_error, y_error, 'k--', linewidth=1)
 plt.plot(x_errorD, y_errorD, 'k--', linewidth=1)
-plt.legend(['Vaso', 'Sensores', 'Real', 'Calc', 'Disp'], loc=1)
+plt.legend(['Vaso', 'Sensores', 'Real', 'Seccionamento', 'AEWin'], loc=1)
 plt.xlabel('Posição x [mm]')
 plt.ylabel('Posição y [mm]')
 plt.show()
@@ -164,7 +164,7 @@ plt.plot(p_xcalc, p_ycalc, 'b.', markersize=12)
 plt.plot(p_xdisp, p_ydisp, 'r.', markersize=12)
 plt.plot(x_error, y_error, 'k--', linewidth=1)
 plt.plot(x_errorD, y_errorD, 'k--', linewidth=1)
-plt.legend(['Vaso', 'Sensores', 'Real', 'Calc', 'Disp'], loc=1)
+plt.legend(['Vaso', 'Sensores', 'Real', 'Seccionamento', 'AEWin'], loc=1)
 plt.ylim((-300, 300))
 plt.xlabel('Posição x [mm]')
 plt.ylabel('Posição y [mm]')
@@ -184,7 +184,7 @@ plt.errorbar(x_array - [10] * len(x_array), mean_d,
              yerr=dp_d, uplims=True, lolims=True, fmt='ro')
 plt.errorbar(x_array + [10] * len(x_array), mean_c,
              yerr=dp_c, uplims=True, lolims=True, fmt='bo')
-plt.legend(['Disp', 'Seccionamento'], loc=1)
+plt.legend(['AEWin', 'Seccionamento'], loc=1)
 plt.ylabel('Erro [% diagonal]')
 plt.xlabel('Posição X [mm]')
 plt.show()

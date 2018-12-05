@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 
-file = open('Resultados\\ErrorVertical.txt', 'r')
+file = open('Resultados\\AST_Samos.txt', 'r')
 
 # Parâmetros do vaso
 C = 2492.0
@@ -78,9 +78,13 @@ for xp, yp, xs, ys, xc, yc in zip(x_real, y_real, x_simple, y_simple, x_calc, y_
     e_c = Locate.ExternalCalcDist(xc, yc, xp, yp)
     error_c.append(e_c * 100 / Diag)
     error_s.append(e_s * 100 / Diag)
+    print(str(k) + ' / ' + 'real: ' + str(xp) + ' / ' + str(yp) + ' / ' + 'simples: ' + str(xs) + ' / ' +
+          str(ys) + ' / ' + str(e_s / Diag) + ' / ' + 'secc: ' + str(xc) + ' / ' + str(yc) + ' / ' + str(e_c / Diag))
+    """
     print('Ponto ' + str(k))
     print("Erro do simples " + str(round(e_s, 3)) + " mm")
     print("Erro do calculado " + str(round(e_c, 3)) + " mm")
+    """
 
     cond1 = e_s < 300 and e_c < 300
     cond1 = True
@@ -101,9 +105,10 @@ for xp, yp, xs, ys, xc, yc in zip(x_real, y_real, x_simple, y_simple, x_calc, y_
         x_error += [xp, xc, np.nan]
         y_error += [yp, yc, np.nan]
 
-    print("\n")
+    # print("\n")
 
 file.close()
+
 
 x_vessel = [0, C, C, 0, 0, 0, C, C, 0, 0, C, C, 0, 0]
 y_vessel = [0, 0, h, h, 0, -sp, -sp, 0, 0, h, h, h + sp, h + sp, h]
@@ -114,7 +119,7 @@ plt.plot(p_xcalc, p_ycalc, 'b.', markersize=12)
 plt.plot(p_xsimple, p_ysimple, 'r.', markersize=12)
 plt.plot(x_error, y_error, 'b--', linewidth=1)
 plt.plot(x_errorD, y_errorD, 'r--', linewidth=1)
-plt.legend(['Vaso', 'Real', 'Calc', 'Simples'], loc=1)
+plt.legend(['Vaso', 'Real', 'Seccionamento', 'Planificado'], loc=1)
 plt.xlabel('Posição x [mm]')
 plt.ylabel('Posição y [mm]')
 plt.show()
@@ -124,3 +129,4 @@ plt.legend(["Planificado", "Seccionamento"], loc=1)
 plt.ylabel("Erro de posição [% diagonal do vaso]")
 plt.xlabel("Altura [mm]")
 plt.show()
+
