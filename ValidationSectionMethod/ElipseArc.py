@@ -34,8 +34,25 @@ def elipseArc(a, f):
 
     print("Desvio máximo: " + str(np.max(residue)))
 
-    plt.plot(pos, arc)
-    plt.plot(pos, y_reg)
+    # Vetores para plot
+    index_plt = np.linspace(0, divs - 1, num = 11)
+    pos_plt = []
+    arc_plt = []
+    for k in index_plt:
+        k = int(k)
+        pos_plt.append(pos[k])
+        arc_plt.append(arc[k])
+
+    index_plt = np.linspace(0, divs - 1, num = 10)
+    posreg_plt = []
+    yreg_plt = []
+    for k in index_plt:
+        k = int(k)
+        posreg_plt.append(pos[k])
+        yreg_plt.append(y_reg[k])
+
+    plt.plot(pos_plt, arc_plt, '*')
+    plt.plot(posreg_plt, yreg_plt, '.')
     plt.title("Regressão do arco")
     plt.ylabel("s / a")
     plt.xlabel("R / a")
@@ -53,8 +70,25 @@ def elipseArc(a, f):
 
     print("Desvio máximo: " + str(np.max(residue2)))
 
-    plt.plot(arc, pos)
-    plt.plot(arc, y_reg2)
+    # Vetores para plot
+    index_plt = np.linspace(0, divs - 1, num = 11)
+    pos_plt = []
+    arc_plt = []
+    for k in index_plt:
+        k = int(k)
+        pos_plt.append(pos[k])
+        arc_plt.append(arc[k])
+
+    index_plt = np.linspace(0, divs - 1, num = 10)
+    arcreg_plt = []
+    yreg2_plt = []
+    for k in index_plt:
+        k = int(k)
+        arcreg_plt.append(arc[k])
+        yreg2_plt.append(y_reg2[k])
+
+    plt.plot(arc_plt, pos_plt, '*')
+    plt.plot(arcreg_plt, yreg2_plt, '.')
     plt.title("Regressão da posição")
     plt.xlabel("s / a")
     plt.ylabel("R / a")
